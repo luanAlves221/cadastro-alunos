@@ -13,6 +13,12 @@ from backend.schemas import (
     FuncionarioResponse,
     ProfessorCreate,
     ProfessorResponse,
+    TurmaAlunoCreate,
+    TurmaAlunoResponse,
+    TurmaCreate,
+    TurmaProfessorCreate,
+    TurmaProfessorResponse,
+    TurmaResponse,
 )
 
 
@@ -50,6 +56,21 @@ def pagina_cadastro_funcionario():
     return FileResponse(FRONTEND_DIR / "cadastro_funcionario.html")
 
 
+@app.get("/cadastro-de-turma", include_in_schema=False)
+def pagina_cadastro_turma():
+    return FileResponse(FRONTEND_DIR / "cadastro_turma.html")
+
+
+@app.get("/cadastro-de-turma-aluno", include_in_schema=False)
+def pagina_cadastro_turma_aluno():
+    return FileResponse(FRONTEND_DIR / "cadastro_turmaaluno.html")
+
+
+@app.get("/cadastro-de-turma-professor", include_in_schema=False)
+def pagina_cadastro_turma_professor():
+    return FileResponse(FRONTEND_DIR / "cadastro_turmaprofessor.html")
+
+
 @app.get("/alunos", response_model=list[AlunoResponse])
 def listar_alunos():
     conexao = criar_conexao()
@@ -65,12 +86,13 @@ def listar_alunos():
 
     for registro in registros:
         alunos.append({
-            "id": registro[0],
+            "codAluno": registro[0],
             "nome": registro[1],
             "cpf": registro[2],
             "email": registro[3],
             "data_nascimento": registro[4],
-            "curso": registro[5]
+            "telefone": registro[5],
+            "ra": registro[6]
         })
 
     return alunos
@@ -83,8 +105,8 @@ def cadastrar_aluno(aluno: AlunoCreate):
 
     sql = '''
         INSERT INTO alunos
-        (nome, cpf, email, data_nascimento, curso)
-        VALUES (%s, %s, %s, %s, %s)
+        (nome, cpf, email, data_nascimento, telefone, ra)
+        VALUES (%s, %s, %s, %s, %s, %s)
     '''
 
     valores = (
@@ -92,7 +114,8 @@ def cadastrar_aluno(aluno: AlunoCreate):
         aluno.cpf,
         aluno.email,
         aluno.data_nascimento,
-        aluno.curso
+        aluno.telefone,
+        aluno.ra
     )
 
     try:
@@ -100,12 +123,13 @@ def cadastrar_aluno(aluno: AlunoCreate):
         conexao.commit()
 
         return {
-            "id": cursor.lastrowid,
+            "codAluno": cursor.lastrowid,
             "nome": aluno.nome,
             "cpf": aluno.cpf,
             "email": aluno.email,
             "data_nascimento": aluno.data_nascimento,
-            "curso": aluno.curso
+            "telefone": aluno.telefone,
+            "ra": aluno.ra
         }
 
     except IntegrityError as erro:
@@ -114,7 +138,7 @@ def cadastrar_aluno(aluno: AlunoCreate):
         if erro.errno == 1062:
             raise HTTPException(
                 status_code=409,
-                detail="CPF já cadastrado."
+                detail="CPF ou RA já cadastrado."
             )
 
         raise HTTPException(
@@ -142,11 +166,12 @@ def listar_professores():
 
     for registro in registros:
         professores.append({
-            "id": registro[0],
+            "codProf": registro[0],
             "nome": registro[1],
             "cpf": registro[2],
             "email": registro[3],
-            "especialidade": registro[4]
+            "data_nascimento": registro[4],
+            "telefone": registro[5]
         })
 
     return professores
@@ -159,15 +184,16 @@ def cadastrar_professor(professor: ProfessorCreate):
 
     sql = '''
         INSERT INTO professores
-        (nome, cpf, email, especialidade)
-        VALUES (%s, %s, %s, %s)
+        (nome, cpf, email, data_nascimento, telefone)
+        VALUES (%s, %s, %s, %s, %s)
     '''
 
     valores = (
         professor.nome,
         professor.cpf,
         professor.email,
-        professor.especialidade
+        professor.data_nascimento,
+        professor.telefone
     )
 
     try:
@@ -175,11 +201,12 @@ def cadastrar_professor(professor: ProfessorCreate):
         conexao.commit()
 
         return {
-            "id": cursor.lastrowid,
+            "codProf": cursor.lastrowid,
             "nome": professor.nome,
             "cpf": professor.cpf,
             "email": professor.email,
-            "especialidade": professor.especialidade
+            "data_nascimento": professor.data_nascimento,
+            "telefone": professor.telefone
         }
 
     except IntegrityError as erro:
@@ -216,12 +243,12 @@ def listar_funcionarios():
 
     for registro in registros:
         funcionarios.append({
-            "id": registro[0],
+            "codFunc": registro[0],
             "nome": registro[1],
             "cpf": registro[2],
             "email": registro[3],
-            "cargo": registro[4],
-            "setor": registro[5]
+            "data_nascimento": registro[4],
+            "telefone": registro[5]
         })
 
     return funcionarios
@@ -234,7 +261,7 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate):
 
     sql = '''
         INSERT INTO funcionarios
-        (nome, cpf, email, cargo, setor)
+        (nome, cpf, email, data_nascimento, telefone)
         VALUES (%s, %s, %s, %s, %s)
     '''
 
@@ -242,8 +269,8 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate):
         funcionario.nome,
         funcionario.cpf,
         funcionario.email,
-        funcionario.cargo,
-        funcionario.setor
+        funcionario.data_nascimento,
+        funcionario.telefone
     )
 
     try:
@@ -251,12 +278,12 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate):
         conexao.commit()
 
         return {
-            "id": cursor.lastrowid,
+            "codFunc": cursor.lastrowid,
             "nome": funcionario.nome,
             "cpf": funcionario.cpf,
             "email": funcionario.email,
-            "cargo": funcionario.cargo,
-            "setor": funcionario.setor
+            "data_nascimento": funcionario.data_nascimento,
+            "telefone": funcionario.telefone
         }
 
     except IntegrityError as erro:
@@ -267,6 +294,195 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate):
                 status_code=409,
                 detail="CPF já cadastrado."
             )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro de integridade no banco de dados."
+        )
+
+    finally:
+        cursor.close()
+        conexao.close()
+
+
+@app.get("/turmas", response_model=list[TurmaResponse])
+def listar_turmas():
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    cursor.execute("SELECT * FROM turma")
+    registros = cursor.fetchall()
+
+    cursor.close()
+    conexao.close()
+
+    turmas = []
+
+    for registro in registros:
+        turmas.append({
+            "codTurma": registro[0],
+            "curso": registro[1],
+            "modulo": registro[2],
+            "ano": registro[3]
+        })
+
+    return turmas
+
+
+@app.post("/turmas", response_model=TurmaResponse)
+def cadastrar_turma(turma: TurmaCreate):
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    sql = '''
+        INSERT INTO turma
+        (curso, modulo, ano)
+        VALUES (%s, %s, %s)
+    '''
+
+    valores = (
+        turma.curso,
+        turma.modulo,
+        turma.ano
+    )
+
+    try:
+        cursor.execute(sql, valores)
+        conexao.commit()
+
+        return {
+            "codTurma": cursor.lastrowid,
+            "curso": turma.curso,
+            "modulo": turma.modulo,
+            "ano": turma.ano
+        }
+
+    except IntegrityError as erro:
+        conexao.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro de integridade no banco de dados."
+        )
+
+    finally:
+        cursor.close()
+        conexao.close()
+
+
+@app.get("/turma-alunos", response_model=list[TurmaAlunoResponse])
+def listar_turma_alunos():
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    cursor.execute("SELECT * FROM turmaaluno")
+    registros = cursor.fetchall()
+
+    cursor.close()
+    conexao.close()
+
+    turma_alunos = []
+
+    for registro in registros:
+        turma_alunos.append({
+            "codTurmaAluno": registro[0],
+            "codTurma": registro[1],
+            "codAluno": registro[2]
+        })
+
+    return turma_alunos
+
+
+@app.post("/turma-alunos", response_model=TurmaAlunoResponse)
+def cadastrar_turma_aluno(turma_aluno: TurmaAlunoCreate):
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    sql = '''
+        INSERT INTO turmaaluno
+        (codTurma, codAluno)
+        VALUES (%s, %s)
+    '''
+
+    valores = (
+        turma_aluno.codTurma,
+        turma_aluno.codAluno
+    )
+
+    try:
+        cursor.execute(sql, valores)
+        conexao.commit()
+
+        return {
+            "codTurmaAluno": cursor.lastrowid,
+            "codTurma": turma_aluno.codTurma,
+            "codAluno": turma_aluno.codAluno
+        }
+
+    except IntegrityError as erro:
+        conexao.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro de integridade no banco de dados."
+        )
+
+    finally:
+        cursor.close()
+        conexao.close()
+
+
+@app.get("/turma-professores", response_model=list[TurmaProfessorResponse])
+def listar_turma_professores():
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    cursor.execute("SELECT * FROM turmaprofessor")
+    registros = cursor.fetchall()
+
+    cursor.close()
+    conexao.close()
+
+    turma_professores = []
+
+    for registro in registros:
+        turma_professores.append({
+            "codTurmaProfessor": registro[0],
+            "codTurma": registro[1],
+            "codProf": registro[2]
+        })
+
+    return turma_professores
+
+
+@app.post("/turma-professores", response_model=TurmaProfessorResponse)
+def cadastrar_turma_professor(turma_professor: TurmaProfessorCreate):
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    sql = '''
+        INSERT INTO turmaprofessor
+        (codTurma, codProf)
+        VALUES (%s, %s)
+    '''
+
+    valores = (
+        turma_professor.codTurma,
+        turma_professor.codProf
+    )
+
+    try:
+        cursor.execute(sql, valores)
+        conexao.commit()
+
+        return {
+            "codTurmaProfessor": cursor.lastrowid,
+            "codTurma": turma_professor.codTurma,
+            "codProf": turma_professor.codProf
+        }
+
+    except IntegrityError as erro:
+        conexao.rollback()
 
         raise HTTPException(
             status_code=500,

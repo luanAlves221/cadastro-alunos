@@ -11,7 +11,8 @@ formulario.addEventListener("submit", async function(evento) {
         cpf: document.getElementById("cpf").value,
         email: document.getElementById("email").value,
         data_nascimento: document.getElementById("data_nascimento").value,
-        curso: document.getElementById("curso").value
+        telefone: document.getElementById("telefone").value,
+        ra: document.getElementById("ra").value
     };
 
     try {
@@ -59,7 +60,8 @@ function obterMensagemErro(resultado) {
                 if (campo === "nome") return "Nome inválido.";
                 if (campo === "cpf") return "CPF inválido.";
                 if (campo === "data_nascimento") return "Data de nascimento inválida.";
-                if (campo === "curso") return "Curso inválido.";
+                if (campo === "telefone") return "Telefone inválido.";
+                if (campo === "ra") return "RA inválido.";
 
                 return erro.msg;
             })

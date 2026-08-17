@@ -8,45 +8,84 @@ class AlunoCreate(BaseModel):
     cpf: str
     email: EmailStr
     data_nascimento: date
-    curso: str
+    telefone: str
+    ra: str
 
 
 class AlunoResponse(BaseModel):
-    id: int
+    codAluno: int
     nome: str
     cpf: str
     email: EmailStr
     data_nascimento: date
-    curso: str
+    telefone: str
+    ra: str
 
 
 class ProfessorCreate(BaseModel):
     nome: str
     cpf: str
     email: EmailStr
-    especialidade: str
+    data_nascimento: date
+    telefone: str
 
 
 class ProfessorResponse(BaseModel):
-    id: int
+    codProf: int
     nome: str
     cpf: str
     email: EmailStr
-    especialidade: str
+    data_nascimento: date
+    telefone: str
 
 
 class FuncionarioCreate(BaseModel):
     nome: str
     cpf: str
     email: EmailStr
-    cargo: str
-    setor: str
+    data_nascimento: date
+    telefone: str
 
 
 class FuncionarioResponse(BaseModel):
-    id: int
+    codFunc: int
     nome: str
     cpf: str
     email: EmailStr
-    cargo: str
-    setor: str
+    data_nascimento: date
+    telefone: str
+
+
+class TurmaCreate(BaseModel):
+    curso: str
+    modulo: str
+    ano: date
+
+
+class TurmaResponse(BaseModel):
+    codTurma: int
+    curso: str
+    modulo: str
+    ano: date
+
+
+class TurmaAlunoCreate(BaseModel):
+    codTurma: int
+    codAluno: int
+
+
+class TurmaAlunoResponse(BaseModel):
+    codTurmaAluno: int
+    codTurma: int
+    codAluno: int
+
+
+class TurmaProfessorCreate(BaseModel):
+    codTurma: int
+    codProf: int
+
+
+class TurmaProfessorResponse(BaseModel):
+    codTurmaProfessor: int
+    codTurma: int
+    codProf: int

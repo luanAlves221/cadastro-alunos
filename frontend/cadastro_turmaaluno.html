@@ -1,0 +1,25 @@
+<h1>Cadastro de Turma e Aluno</h1>
+
+<form id="form-turma-aluno">
+    <div>
+        <label for="codTurma">Turma:</label>
+        <select id="codTurma" name="codTurma" required>
+            <option value="">Selecione uma turma</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="codAluno">Aluno:</label>
+        <select id="codAluno" name="codAluno" required>
+            <option value="">Selecione um aluno</option>
+        </select>
+    </div>
+
+    <button type="submit">Cadastrar</button>
+</form>
+
+<div id="mensagem" aria-live="polite"></div>
+
+<a href="/">Voltar para o início</a>
+
+<script src="/frontend/js/turmaaluno.js"></script>

@@ -1,0 +1,25 @@
+<h1>Cadastro de Turma e Professor</h1>
+
+<form id="form-turma-professor">
+    <div>
+        <label for="codTurma">Turma:</label>
+        <select id="codTurma" name="codTurma" required>
+            <option value="">Selecione uma turma</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="codProf">Professor:</label>
+        <select id="codProf" name="codProf" required>
+            <option value="">Selecione um professor</option>
+        </select>
+    </div>
+
+    <button type="submit">Cadastrar</button>
+</form>
+
+<div id="mensagem" aria-live="polite"></div>
+
+<a href="/">Voltar para o início</a>
+
+<script src="/frontend/js/turmaprofessor.js"></script>
