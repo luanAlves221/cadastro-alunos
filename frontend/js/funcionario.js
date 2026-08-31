@@ -1,49 +1,50 @@
-const formulario = document.getElementById("form-funcionario");
+﻿const formulario = document.getElementById("form-funcionario");
 const mensagem = document.getElementById("mensagem");
 
-formulario.addEventListener("submit", async function(evento) {
-    evento.preventDefault();
+if (formulario) {
+    formulario.addEventListener("submit", async function(evento) {
+        evento.preventDefault();
 
-    mensagem.textContent = "";
+        mensagem.textContent = "";
 
-    const funcionario = {
-        nome: document.getElementById("nome").value,
-        cpf: document.getElementById("cpf").value,
-        email: document.getElementById("email").value,
-        data_nascimento: document.getElementById("data_nascimento").value,
-        telefone: document.getElementById("telefone").value
-    };
+        const funcionario = {
+            nome: document.getElementById("nome").value,
+            cpf: document.getElementById("cpf").value,
+            email: document.getElementById("email").value,
+            data_nascimento: document.getElementById("data_nascimento").value,
+            telefone: document.getElementById("telefone").value
+        };
 
-    try {
-        const resposta = await fetch("/funcionarios", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(funcionario)
-        });
+        try {
+            const resposta = await fetch("/funcionarios", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(funcionario)
+            });
 
-        const resultado = await resposta.json();
+            const resultado = await resposta.json();
 
-        if (resposta.ok) {
-            mensagem.textContent = "Funcionário cadastrado com sucesso!";
-            formulario.reset();
-            console.log("Funcionário cadastrado:", resultado);
-        } else {
+            if (resposta.ok) {
+                mensagem.textContent = "Funcionário cadastrado com sucesso!";
+                formulario.reset();
+                console.log("Funcionário cadastrado:", resultado);
+            } else {
+                mensagem.textContent =
+                    "Erro ao cadastrar funcionário: " + obterMensagemErro(resultado);
+
+                console.error("Erro da API:", resultado);
+            }
+
+        } catch (erro) {
             mensagem.textContent =
-                "Erro ao cadastrar funcionário: " + obterMensagemErro(resultado);
+                "Não foi possível conectar ao servidor.";
 
-            console.error("Erro da API:", resultado);
+            console.error("Erro de conexão:", erro);
         }
-
-    } catch (erro) {
-        mensagem.textContent =
-            "Não foi possível conectar ao servidor.";
-
-        console.error("Erro de conexão:", erro);
-    }
-});
-
+    });
+}
 
 function obterMensagemErro(resultado) {
     if (!resultado.detail) {
@@ -68,3 +69,51 @@ function obterMensagemErro(resultado) {
 
     return resultado.detail;
 }
+
+async function carregarFuncionarios() {
+    const tabela = document.getElementById("listaFuncionarios");
+
+    if (!tabela) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch("/funcionarios");
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao buscar funcionários.");
+        }
+
+        const funcionarios = await resposta.json();
+
+        tabela.innerHTML = "";
+
+        funcionarios.forEach(funcionario => {
+            const linha = document.createElement("tr");
+
+            linha.innerHTML = `
+                <td>${funcionario.codFunc}</td>
+                <td>${funcionario.nome}</td>
+                <td>${funcionario.cpf}</td>
+                <td>${funcionario.email}</td>
+                <td>${funcionario.data_nascimento}</td>
+                <td>${funcionario.telefone}</td>
+            `;
+
+            tabela.appendChild(linha);
+        });
+
+    } catch (erro) {
+        console.error("Erro ao carregar funcionários:", erro);
+
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    Erro ao carregar os funcionários.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+carregarFuncionarios();

@@ -1,50 +1,51 @@
-const formulario = document.getElementById("form-aluno");
+﻿const formulario = document.getElementById("form-aluno");
 const mensagem = document.getElementById("mensagem");
 
-formulario.addEventListener("submit", async function(evento) {
-    evento.preventDefault();
+if (formulario) {
+    formulario.addEventListener("submit", async function(evento) {
+        evento.preventDefault();
 
-    mensagem.textContent = "";
+        mensagem.textContent = "";
 
-    const aluno = {
-        nome: document.getElementById("nome").value,
-        cpf: document.getElementById("cpf").value,
-        email: document.getElementById("email").value,
-        data_nascimento: document.getElementById("data_nascimento").value,
-        telefone: document.getElementById("telefone").value,
-        ra: document.getElementById("ra").value
-    };
+        const aluno = {
+            nome: document.getElementById("nome").value,
+            cpf: document.getElementById("cpf").value,
+            email: document.getElementById("email").value,
+            data_nascimento: document.getElementById("data_nascimento").value,
+            telefone: document.getElementById("telefone").value,
+            ra: document.getElementById("ra").value
+        };
 
-    try {
-        const resposta = await fetch("/alunos", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(aluno)
-        });
+        try {
+            const resposta = await fetch("/alunos", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(aluno)
+            });
 
-        const resultado = await resposta.json();
+            const resultado = await resposta.json();
 
-        if (resposta.ok) {
-            mensagem.textContent = "Aluno cadastrado com sucesso!";
-            formulario.reset();
-            console.log("Aluno cadastrado:", resultado);
-        } else {
+            if (resposta.ok) {
+                mensagem.textContent = "Aluno cadastrado com sucesso!";
+                formulario.reset();
+                console.log("Aluno cadastrado:", resultado);
+            } else {
+                mensagem.textContent =
+                    "Erro ao cadastrar aluno: " + obterMensagemErro(resultado);
+
+                console.error("Erro da API:", resultado);
+            }
+
+        } catch (erro) {
             mensagem.textContent =
-                "Erro ao cadastrar aluno: " + obterMensagemErro(resultado);
+                "Não foi possível conectar ao servidor.";
 
-            console.error("Erro da API:", resultado);
+            console.error("Erro de conexão:", erro);
         }
-
-    } catch (erro) {
-        mensagem.textContent =
-            "Não foi possível conectar ao servidor.";
-
-        console.error("Erro de conexão:", erro);
-    }
-});
-
+    });
+}
 
 function obterMensagemErro(resultado) {
     if (!resultado.detail) {
@@ -70,3 +71,52 @@ function obterMensagemErro(resultado) {
 
     return resultado.detail;
 }
+
+async function carregarAlunos() {
+    const tabela = document.getElementById("listaAlunos");
+
+    if (!tabela) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch("/alunos");
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao buscar alunos.");
+        }
+
+        const alunos = await resposta.json();
+
+        tabela.innerHTML = "";
+
+        alunos.forEach(aluno => {
+            const linha = document.createElement("tr");
+
+            linha.innerHTML = `
+                <td>${aluno.codAluno}</td>
+                <td>${aluno.nome}</td>
+                <td>${aluno.cpf}</td>
+                <td>${aluno.email}</td>
+                <td>${aluno.data_nascimento}</td>
+                <td>${aluno.telefone}</td>
+                <td>${aluno.ra}</td>
+            `;
+
+            tabela.appendChild(linha);
+        });
+
+    } catch (erro) {
+        console.error("Erro ao carregar alunos:", erro);
+
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    Erro ao carregar os alunos.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+carregarAlunos();
