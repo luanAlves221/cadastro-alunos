@@ -1,25 +1,70 @@
-<h1>Cadastro de Turma e Professor</h1>
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-<form id="form-turma-professor">
-    <div>
-        <label for="codTurma">Turma:</label>
-        <select id="codTurma" name="codTurma" required>
-            <option value="">Selecione uma turma</option>
-        </select>
-    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Turma e Professor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/frontend/css/estilo.css">
+</head>
 
-    <div>
-        <label for="codProf">Professor:</label>
-        <select id="codProf" name="codProf" required>
-            <option value="">Selecione um professor</option>
-        </select>
-    </div>
+<body>
 
-    <button type="submit">Cadastrar</button>
-</form>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">Sistema Escola</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Início</a>
+                <a class="nav-link" href="/frontend/alunos.html">Alunos</a>
+                <a class="nav-link" href="/frontend/professores.html">Professores</a>
+                <a class="nav-link" href="/frontend/funcionarios.html">Funcionários</a>
+            </div>
+        </div>
+    </nav>
 
-<div id="mensagem" aria-live="polite"></div>
+    <main class="container mb-5" style="max-width: 600px;">
 
-<a href="/">Voltar para o início</a>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
 
-<script src="/frontend/js/turmaprofessor.js"></script>
+                <h1 class="h4 fw-bold mb-4">Vincular Turma e Professor</h1>
+
+                <form id="form-turma-professor">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="codTurma" class="form-label">Turma:</label>
+                            <select id="codTurma" name="codTurma" class="form-select" required>
+                                <option value="">Selecione uma turma</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="codProf" class="form-label">Professor:</label>
+                            <select id="codProf" name="codProf" class="form-select" required>
+                                <option value="">Selecione um professor</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary w-100 py-2">Vincular Professor à Turma</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="mensagem" class="mt-3 text-center" aria-live="polite"></div>
+
+                <div class="text-center mt-3">
+                    <a href="/" class="text-decoration-none text-muted small">Voltar para o início</a>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script src="/frontend/js/turmaprofessor.js"></script>
+
+</body>
+
+</html>

@@ -1,4 +1,6 @@
-﻿const formulario = document.getElementById("form-aluno");
+let alunos = [];
+
+const formulario = document.getElementById("form-aluno");
 const mensagem = document.getElementById("mensagem");
 
 if (formulario) {
@@ -86,37 +88,103 @@ async function carregarAlunos() {
             throw new Error("Erro ao buscar alunos.");
         }
 
-        const alunos = await resposta.json();
+        alunos = await resposta.json();
 
-        tabela.innerHTML = "";
-
-        alunos.forEach(aluno => {
-            const linha = document.createElement("tr");
-
-            linha.innerHTML = `
-                <td>${aluno.codAluno}</td>
-                <td>${aluno.nome}</td>
-                <td>${aluno.cpf}</td>
-                <td>${aluno.email}</td>
-                <td>${aluno.data_nascimento}</td>
-                <td>${aluno.telefone}</td>
-                <td>${aluno.ra}</td>
-            `;
-
-            tabela.appendChild(linha);
-        });
+        exibirAlunos(alunos);
 
     } catch (erro) {
         console.error("Erro ao carregar alunos:", erro);
 
         tabela.innerHTML = `
             <tr>
-                <td colspan="7">
+                <td colspan="7" class="text-center text-danger py-4">
                     Erro ao carregar os alunos.
                 </td>
             </tr>
         `;
     }
+}
+
+function exibirAlunos(listaAlunos) {
+    const tabela = document.getElementById("listaAlunos");
+
+    if (!tabela) {
+        return;
+    }
+
+    tabela.innerHTML = "";
+
+    if (listaAlunos.length === 0) {
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    Nenhum aluno encontrado.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    listaAlunos.forEach(aluno => {
+        const linha = document.createElement("tr");
+
+        linha.innerHTML = `
+            <td>${aluno.codAluno}</td>
+            <td>${aluno.nome}</td>
+            <td>${aluno.cpf}</td>
+            <td>${aluno.email}</td>
+            <td>${aluno.data_nascimento}</td>
+            <td>${aluno.telefone}</td>
+            <td>${aluno.ra}</td>
+        `;
+
+        tabela.appendChild(linha);
+    });
+}
+
+function filtrarAlunos() {
+    const campoElemento = document.getElementById("campoFiltro");
+    const textoElemento = document.getElementById("textoFiltro");
+
+    if (!campoElemento || !textoElemento) {
+        return;
+    }
+
+    const campo = campoElemento.value;
+    const texto = textoElemento.value.toLowerCase().trim();
+
+    const alunosFiltrados = alunos.filter(aluno => {
+        const valor = aluno[campo];
+
+        if (valor === null || valor === undefined) {
+            return false;
+        }
+
+        return String(valor).toLowerCase().includes(texto);
+    });
+
+    exibirAlunos(alunosFiltrados);
+}
+
+const textoFiltro = document.getElementById("textoFiltro");
+
+if (textoFiltro) {
+    textoFiltro.addEventListener("input", filtrarAlunos);
+}
+
+const campoFiltro = document.getElementById("campoFiltro");
+
+if (campoFiltro) {
+    campoFiltro.addEventListener("change", filtrarAlunos);
+}
+
+const btnLimparFiltro = document.getElementById("btnLimparFiltro");
+
+if (btnLimparFiltro) {
+    btnLimparFiltro.addEventListener("click", function() {
+        document.getElementById("textoFiltro").value = "";
+        exibirAlunos(alunos);
+    });
 }
 
 carregarAlunos();

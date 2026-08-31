@@ -1,4 +1,6 @@
-﻿const formulario = document.getElementById("form-funcionario");
+let funcionarios = [];
+
+const formulario = document.getElementById("form-funcionario");
 const mensagem = document.getElementById("mensagem");
 
 if (formulario) {
@@ -84,36 +86,102 @@ async function carregarFuncionarios() {
             throw new Error("Erro ao buscar funcionários.");
         }
 
-        const funcionarios = await resposta.json();
+        funcionarios = await resposta.json();
 
-        tabela.innerHTML = "";
-
-        funcionarios.forEach(funcionario => {
-            const linha = document.createElement("tr");
-
-            linha.innerHTML = `
-                <td>${funcionario.codFunc}</td>
-                <td>${funcionario.nome}</td>
-                <td>${funcionario.cpf}</td>
-                <td>${funcionario.email}</td>
-                <td>${funcionario.data_nascimento}</td>
-                <td>${funcionario.telefone}</td>
-            `;
-
-            tabela.appendChild(linha);
-        });
+        exibirFuncionarios(funcionarios);
 
     } catch (erro) {
         console.error("Erro ao carregar funcionários:", erro);
 
         tabela.innerHTML = `
             <tr>
-                <td colspan="6">
+                <td colspan="6" class="text-center text-danger py-4">
                     Erro ao carregar os funcionários.
                 </td>
             </tr>
         `;
     }
+}
+
+function exibirFuncionarios(listaFuncionarios) {
+    const tabela = document.getElementById("listaFuncionarios");
+
+    if (!tabela) {
+        return;
+    }
+
+    tabela.innerHTML = "";
+
+    if (listaFuncionarios.length === 0) {
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    Nenhum funcionário encontrado.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    listaFuncionarios.forEach(funcionario => {
+        const linha = document.createElement("tr");
+
+        linha.innerHTML = `
+            <td>${funcionario.codFunc}</td>
+            <td>${funcionario.nome}</td>
+            <td>${funcionario.cpf}</td>
+            <td>${funcionario.email}</td>
+            <td>${funcionario.data_nascimento}</td>
+            <td>${funcionario.telefone}</td>
+        `;
+
+        tabela.appendChild(linha);
+    });
+}
+
+function filtrarFuncionarios() {
+    const campoElemento = document.getElementById("campoFiltro");
+    const textoElemento = document.getElementById("textoFiltro");
+
+    if (!campoElemento || !textoElemento) {
+        return;
+    }
+
+    const campo = campoElemento.value;
+    const texto = textoElemento.value.toLowerCase().trim();
+
+    const funcionariosFiltrados = funcionarios.filter(funcionario => {
+        const valor = funcionario[campo];
+
+        if (valor === null || valor === undefined) {
+            return false;
+        }
+
+        return String(valor).toLowerCase().includes(texto);
+    });
+
+    exibirFuncionarios(funcionariosFiltrados);
+}
+
+const textoFiltro = document.getElementById("textoFiltro");
+
+if (textoFiltro) {
+    textoFiltro.addEventListener("input", filtrarFuncionarios);
+}
+
+const campoFiltro = document.getElementById("campoFiltro");
+
+if (campoFiltro) {
+    campoFiltro.addEventListener("change", filtrarFuncionarios);
+}
+
+const btnLimparFiltro = document.getElementById("btnLimparFiltro");
+
+if (btnLimparFiltro) {
+    btnLimparFiltro.addEventListener("click", function() {
+        document.getElementById("textoFiltro").value = "";
+        exibirFuncionarios(funcionarios);
+    });
 }
 
 carregarFuncionarios();

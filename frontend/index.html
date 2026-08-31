@@ -1,45 +1,97 @@
-﻿<h1>Sistema Escola</h1>
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-<h2>Entidades</h2>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Escola - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/frontend/css/estilo.css">
+</head>
 
-<nav>
-    <a href="/frontend/alunos.html">
-        Ver todos os Alunos
-    </a>
+<body>
 
-    <a href="/frontend/professores.html">
-        Ver todos os Professores
-    </a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">Sistema Escola</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="/">Início</a>
+                <a class="nav-link" href="/frontend/alunos.html">Alunos</a>
+                <a class="nav-link" href="/frontend/professores.html">Professores</a>
+                <a class="nav-link" href="/frontend/funcionarios.html">Funcionários</a>
+            </div>
+        </div>
+    </nav>
 
-    <a href="/frontend/funcionarios.html">
-        Ver todos os Funcionários
-    </a>
-</nav>
+    <main class="container mb-5">
 
-<h2>Cadastros</h2>
+        <div class="text-center py-4 mb-4">
+            <h1 class="display-6 fw-bold mb-2">Painel de Gestão Escolar</h1>
+            <p class="text-muted lead">Consulte os registros ou realize novos cadastros no sistema.</p>
+        </div>
 
-<nav>
-    <a href="/cadastro-de-aluno">
-        Cadastro de Alunos
-    </a>
+        <div class="row g-4 mb-5">
 
-    <a href="/cadastro-de-professor">
-        Cadastro de Professores
-    </a>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <h2 class="h4 fw-bold mb-3">Alunos</h2>
+                        <p class="text-muted">Consulte os alunos cadastrados ou realize um novo cadastro.</p>
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="/frontend/alunos.html" class="btn btn-primary">Ver alunos</a>
+                            <a href="/cadastro-de-aluno" class="btn btn-outline-primary">Cadastrar aluno</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <a href="/cadastro-de-funcionario">
-        Cadastro de Funcionários
-    </a>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <h2 class="h4 fw-bold mb-3">Professores</h2>
+                        <p class="text-muted">Consulte os professores cadastrados ou realize um novo cadastro.</p>
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="/frontend/professores.html" class="btn btn-primary">Ver professores</a>
+                            <a href="/cadastro-de-professor" class="btn btn-outline-primary">Cadastrar professor</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <a href="/cadastro-de-turma">
-        Cadastro de Turmas
-    </a>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <h2 class="h4 fw-bold mb-3">Funcionários</h2>
+                        <p class="text-muted">Consulte os funcionários cadastrados ou realize um novo cadastro.</p>
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="/frontend/funcionarios.html" class="btn btn-primary">Ver funcionários</a>
+                            <a href="/cadastro-de-funcionario" class="btn btn-outline-primary">Cadastrar funcionário</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <a href="/cadastro-de-turma-aluno">
-        Cadastro de Turma e Aluno
-    </a>
+        </div>
 
-    <a href="/cadastro-de-turma-professor">
-        Cadastro de Turma e Professor
-    </a>
-</nav>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="h5 fw-bold mb-3">Gestão de Turmas e Associações</h3>
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <a href="/cadastro-de-turma" class="btn btn-outline-secondary w-100">Cadastro de Turmas</a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/cadastro-de-turma-aluno" class="btn btn-outline-secondary w-100">Vincular Turma e Aluno</a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/cadastro-de-turma-professor" class="btn btn-outline-secondary w-100">Vincular Turma e Professor</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+
+</html>
