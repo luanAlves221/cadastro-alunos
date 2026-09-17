@@ -1,152 +1,539 @@
-# Capítulo 04 - Alteração de Dados de Alunos
+**Capítulo 05 - Excluir Alunos**
 
-## Objetivo
+Este capítulo é um desafio aos leitores para que tentem desenvolver a
+funcionalidade do Excluir semelhante ao realizado no Alterar do capítulo
+Anterior.
 
-Nesta etapa vamos acrescentar ao sistema a possibilidade de **alterar os dados de um aluno já cadastrado**.
+A unica difereça é que ao pressionar o Excluir, deve-se realizar uma
+pergunta de confirmação "Deseja realmente Excluir?" com os botões de SIM
+e NÃO.
 
-Até agora, o projeto já trabalha com cadastro, listagem e filtros. Agora vamos acrescentar a operação **UPDATE**.
+Implementem primeiro as funcionalidades do Excluir para os Alunos e, em
+seguida, realizem o mesmo para os Professores e Funcionários!!!
 
-> **Importante:** nesta etapa, a alteração será implementada somente para **Aluno**. Ao final, você deverá aplicar o mesmo conceito para **Professor** e **Funcionário** como exercício.
+Bom teste a todos!
 
-## 1. O que vamos construir
+------------------------------------------------------------------------
 
-```text
-Listagem de alunos
-        ↓
-Filtro
-        ↓
-Escolher aluno
-        ↓
-Clicar em "Alterar"
-        ↓
-Abrir formulário preenchido
-        ↓
-Modificar os dados
-        ↓
-Salvar alterações
-        ↓
-JavaScript envia PUT
-        ↓
-FastAPI recebe os dados
-        ↓
-SQL executa UPDATE
-        ↓
-Banco de dados é atualizado
+## 🎯 Objetivo do capítulo
+
+Neste capítulo vamos completar mais uma etapa do **CRUD** do sistema de
+Gestão Escolar.
+
+Até aqui, o projeto já possui as operações de:
+
+-   **Cadastrar** → `POST`
+-   **Listar** → `GET`
+-   **Alterar** → `PUT`
+
+Agora o desafio é implementar:
+
+-   **Excluir** → `DELETE`
+
+A ideia é que você tente desenvolver a funcionalidade sozinho antes de
+consultar a solução.
+
+> **Desafio:** tente implementar primeiro olhando apenas para o código
+> que já existe no projeto, principalmente a funcionalidade de **Alterar
+> Aluno** desenvolvida no capítulo anterior.
+
+Quando terminar, teste bastante!
+
+------------------------------------------------------------------------
+
+## 🧠 Antes de começar: pense no que precisa acontecer
+
+Quando o usuário clicar em:
+
+**🗑️ Excluir**
+
+o sistema deverá:
+
+1.  Identificar qual aluno foi selecionado.
+2.  Perguntar se o usuário realmente deseja excluir.
+3.  Se escolher **NÃO**, não fazer nada.
+4.  Se escolher **SIM**, enviar uma requisição `DELETE` para a API.
+5.  A API deverá localizar o aluno pelo código.
+6.  O banco de dados deverá executar um `DELETE`.
+7.  A API deverá confirmar a operação.
+8.  O JavaScript deverá atualizar a lista de alunos.
+
+Pense:
+
+``` text
+Botão Excluir
+      ↓
+Confirmação
+      ↓
+SIM ou NÃO?
+      ↓
+    NÃO ─────────→ cancela
+      ↓
+     SIM
+      ↓
+DELETE /alunos/{codAluno}
+      ↓
+FastAPI
+      ↓
+MySQL
+      ↓
+Aluno excluído
+      ↓
+Atualiza a lista
 ```
 
-## 2. POST x PUT
+------------------------------------------------------------------------
 
-### Cadastro
+# 🔎 1. Analise como o Alterar funciona
 
-```http
-POST /alunos
+Antes de escrever qualquer código, abra:
+
+``` text
+backend/main.py
+frontend/js/aluno.js
+frontend/alunos.html
 ```
 
-O Back-End executa um `INSERT`.
+No `main.py`, observe a rota existente:
 
-**POST cria um novo registro.**
-
-### Alteração
-
-```http
-PUT /alunos/{codAluno}
+``` python
+@app.put("/alunos/{codAluno}")
+def alterar_aluno(...)
 ```
 
-O Back-End executará:
+No `aluno.js`, observe como o botão Alterar é criado e como a função:
 
-```sql
-UPDATE alunos
-SET ...
-WHERE codAluno = ...;
+``` javascript
+alterarAluno(codAluno)
 ```
 
-**PUT altera um registro existente.**
+é chamada.
 
-## 3. Por que precisamos do código do aluno?
+Observe também como o JavaScript utiliza:
 
-Imagine:
-
-```text
-1 - Marcelo
-2 - João
-3 - Maria
-4 - Carlos
+``` javascript
+fetch()
 ```
 
-Para alterar Maria precisamos identificar o registro. Por isso usamos `codAluno = 3`.
+para conversar com a API.
 
-```http
-PUT /alunos/3
+A funcionalidade Excluir seguirá a mesma ideia, mas utilizando o método
+HTTP:
+
+``` text
+DELETE
 ```
 
-que resulta em algo equivalente a:
+------------------------------------------------------------------------
 
-```sql
-WHERE codAluno = 3;
-```
+# 🧩 2. O que precisa ser criado?
 
-### Atenção ao WHERE
+Para implementar o Excluir de Aluno, você precisará modificar
+principalmente:
 
-Nunca faça:
+### Backend
 
-```sql
-UPDATE alunos
-SET cidade = 'Mogi Guaçu';
-```
+Arquivo:
 
-Isso poderia alterar todos os alunos.
-
-O correto é:
-
-```sql
-UPDATE alunos
-SET cidade = 'Mogi Guaçu'
-WHERE codAluno = 3;
-```
-
-## 4. Etapa 1 — Criar o endpoint PUT
-
-Abra:
-
-```text
+``` text
 backend/main.py
 ```
 
-Depois do endpoint de cadastro do aluno, crie:
+Criar uma nova rota:
 
-```python
-@app.put("/alunos/{codAluno}", response_model=AlunoResponse)
-def alterar_aluno(codAluno: int, aluno: AlunoCreate):
+``` text
+DELETE /alunos/{codAluno}
+```
+
+### Frontend
+
+Arquivo:
+
+``` text
+frontend/js/aluno.js
+```
+
+Você deverá:
+
+-   criar o botão Excluir;
+-   criar a função `excluirAluno()`;
+-   pedir confirmação;
+-   enviar a requisição `DELETE`;
+-   tratar possíveis erros;
+-   atualizar a lista.
+
+O arquivo:
+
+``` text
+frontend/alunos.html
+```
+
+já possui uma coluna chamada **Ações**, portanto observe como os botões
+são inseridos dinamicamente pelo JavaScript.
+
+------------------------------------------------------------------------
+
+# 🧪 3. Primeiro desafio: criar a rota DELETE
+
+No `backend/main.py`, localize a função:
+
+``` python
+alterar_aluno()
+```
+
+Logo depois dela, tente criar uma nova rota.
+
+A estrutura deverá utilizar:
+
+``` python
+@app.delete(...)
+```
+
+Pergunte a si mesmo:
+
+> Qual endereço deverá ser utilizado para identificar o aluno que será
+> excluído?
+
+Compare com:
+
+``` python
+@app.put("/alunos/{codAluno}")
+```
+
+A resposta deverá seguir a mesma lógica.
+
+------------------------------------------------------------------------
+
+# 🗄️ 4. Segundo desafio: criar o comando SQL
+
+Para excluir um registro do MySQL, qual comando SQL devemos utilizar?
+
+A resposta começa com:
+
+``` sql
+DELETE FROM
+```
+
+Mas existe uma pergunta muito importante:
+
+> Como garantir que apenas o aluno escolhido seja excluído?
+
+Observe o comando utilizado no Alterar:
+
+``` sql
+UPDATE alunos
+...
+WHERE codAluno = %s
+```
+
+No `DELETE`, também devemos utilizar:
+
+``` sql
+WHERE codAluno = %s
+```
+
+⚠️ **Cuidado!**
+
+Nunca faça:
+
+``` sql
+DELETE FROM alunos;
+```
+
+sem uma condição quando a intenção é excluir apenas um aluno.
+
+Esse comando poderia excluir todos os registros da tabela.
+
+------------------------------------------------------------------------
+
+# 🔢 5. Terceiro desafio: verificar se o aluno existe
+
+No Alterar, o projeto já verifica:
+
+``` python
+if cursor.rowcount == 0:
+```
+
+Pense:
+
+> Será que podemos utilizar a mesma ideia no Excluir?
+
+Se nenhum registro for afetado, a API deverá informar:
+
+``` text
+Aluno não encontrado.
+```
+
+Uma resposta HTTP adequada para esse caso é:
+
+``` text
+404
+```
+
+------------------------------------------------------------------------
+
+# 💾 6. Quarto desafio: confirmar a alteração no banco
+
+Depois de executar o comando:
+
+``` python
+cursor.execute(...)
+```
+
+lembre-se de que o projeto utiliza:
+
+``` python
+conexao.commit()
+```
+
+O `commit()` confirma a operação realizada no banco de dados.
+
+------------------------------------------------------------------------
+
+# 🖥️ 7. Quinto desafio: criar o botão Excluir
+
+Abra:
+
+``` text
+frontend/js/aluno.js
+```
+
+Localize:
+
+``` javascript
+function exibirAlunos(listaAlunos)
+```
+
+Dentro dessa função existe a criação dos botões de ação.
+
+Atualmente existe o botão:
+
+``` text
+✏️ Alterar
+```
+
+Você deverá adicionar:
+
+``` text
+🗑️ Excluir
+```
+
+O botão deverá receber o código do aluno.
+
+Pense em algo semelhante ao:
+
+``` javascript
+onclick="alterarAluno(${aluno.codAluno})"
+```
+
+Qual seria a chamada equivalente para Excluir?
+
+------------------------------------------------------------------------
+
+# ❓ 8. Sexto desafio: pedir confirmação
+
+Essa é uma das principais novidades deste capítulo.
+
+Antes de excluir, o sistema deverá perguntar:
+
+``` text
+Deseja realmente Excluir?
+```
+
+Uma maneira simples de fazer isso em JavaScript é utilizando:
+
+``` javascript
+confirm()
+```
+
+Pesquise e teste como essa função funciona.
+
+Ela retorna um valor que permite descobrir se o usuário confirmou ou
+cancelou a operação.
+
+Pense:
+
+``` text
+confirm()
+    ↓
+   SIM
+    ↓
+continua a exclusão
+
+   NÃO
+    ↓
+cancela a operação
+```
+
+------------------------------------------------------------------------
+
+# 🌐 9. Sétimo desafio: enviar DELETE para a API
+
+Depois da confirmação, utilize novamente:
+
+``` javascript
+fetch()
+```
+
+No Alterar você encontrou:
+
+``` javascript
+method: "PUT"
+```
+
+Para Excluir, o método deverá ser:
+
+``` javascript
+method: "DELETE"
+```
+
+A URL deverá conter o código do aluno.
+
+Compare:
+
+``` javascript
+`/alunos/${codAluno}`
+```
+
+com a rota criada no FastAPI.
+
+------------------------------------------------------------------------
+
+# 🔄 10. Oitavo desafio: atualizar a tabela
+
+Depois que o aluno for excluído com sucesso, pense:
+
+> Como fazer o aluno desaparecer da tabela?
+
+Você não precisa necessariamente remover a linha manualmente.
+
+O projeto já possui uma função responsável por carregar os alunos:
+
+``` javascript
+carregarAlunos();
+```
+
+Você pode reutilizar essa função depois da exclusão.
+
+Assim:
+
+``` text
+DELETE
+ ↓
+Banco exclui
+ ↓
+carregarAlunos()
+ ↓
+GET /alunos
+ ↓
+nova lista
+ ↓
+tabela atualizada
+```
+
+------------------------------------------------------------------------
+
+# 🧪 11. Testando a funcionalidade
+
+Depois de implementar, teste pelo menos estes casos:
+
+### Teste 1 --- Cancelar
+
+1.  Clique em **Excluir**.
+2.  Escolha **NÃO**.
+3.  Verifique se o aluno continua na tabela.
+
+### Teste 2 --- Confirmar
+
+1.  Clique em **Excluir**.
+2.  Escolha **SIM**.
+3.  Verifique se o aluno desapareceu da tabela.
+
+### Teste 3 --- Banco de dados
+
+Abra o MySQL e execute:
+
+``` sql
+SELECT * FROM alunos;
+```
+
+Confirme que o registro realmente foi removido.
+
+### Teste 4 --- Código inexistente
+
+Tente excluir um aluno que não existe.
+
+A API deverá retornar uma mensagem indicando:
+
+``` text
+Aluno não encontrado.
+```
+
+### Teste 5 --- Console do navegador
+
+Abra as ferramentas do navegador:
+
+``` text
+F12
+```
+
+e observe a aba:
+
+``` text
+Console
+```
+
+Também é interessante observar a aba:
+
+``` text
+Network
+```
+
+para visualizar a requisição:
+
+``` text
+DELETE /alunos/{codAluno}
+```
+
+------------------------------------------------------------------------
+
+# 🛠️ 12. Solução passo a passo
+
+> **⚠️ SPOILER --- tente fazer sozinho antes de abrir!**
+>
+> A solução abaixo apresenta uma implementação possível para o Excluir
+> de Aluno.
+
+
+<details>
+
+
+<summary>
+
+<strong>👉 Clique aqui para revelar a solução do
+Backend</strong>
+
+</summary>
+
+## Backend --- `backend/main.py`
+
+Depois da função `alterar_aluno()`, adicione:
+
+``` python
+@app.delete("/alunos/{codAluno}")
+def excluir_aluno(codAluno: int):
 
     conexao = criar_conexao()
     cursor = conexao.cursor()
 
     sql = """
-        UPDATE alunos
-        SET
-            nome = %s,
-            cpf = %s,
-            email = %s,
-            data_nascimento = %s,
-            telefone = %s,
-            ra = %s,
-            cidade = %s
+        DELETE FROM alunos
         WHERE codAluno = %s
     """
 
-    valores = (
-        aluno.nome,
-        aluno.cpf,
-        aluno.email,
-        aluno.data_nascimento,
-        aluno.telefone,
-        aluno.ra,
-        aluno.cidade,
-        codAluno
-    )
-
     try:
-        cursor.execute(sql, valores)
+
+        cursor.execute(sql, (codAluno,))
 
         if cursor.rowcount == 0:
             raise HTTPException(
@@ -157,906 +544,516 @@ def alterar_aluno(codAluno: int, aluno: AlunoCreate):
         conexao.commit()
 
         return {
-            "codAluno": codAluno,
-            "nome": aluno.nome,
-            "cpf": aluno.cpf,
-            "email": aluno.email,
-            "data_nascimento": aluno.data_nascimento,
-            "telefone": aluno.telefone,
-            "ra": aluno.ra,
-            "cidade": aluno.cidade
+            "mensagem": "Aluno excluído com sucesso."
         }
 
-    except IntegrityError as erro:
-        conexao.rollback()
+    except IntegrityError:
 
-        if erro.errno == 1062:
-            raise HTTPException(
-                status_code=409,
-                detail="CPF ou RA já cadastrado."
-            )
+        conexao.rollback()
 
         raise HTTPException(
             status_code=500,
-            detail="Erro de integridade no banco de dados."
+            detail="Não foi possível excluir o aluno."
         )
 
     finally:
+
         cursor.close()
         conexao.close()
 ```
 
-### O que está acontecendo?
+### Entendendo o código
 
-`@app.put("/alunos/{codAluno}")` cria a rota de alteração. `{codAluno}` é um parâmetro da URL. Por exemplo, `/alunos/5` significa `codAluno = 5`.
+A primeira linha cria a rota:
 
-`aluno: AlunoCreate` recebe os dados enviados pelo Front-End.
+``` python
+@app.delete("/alunos/{codAluno}")
+```
 
-O `UPDATE` informa quais campos serão modificados e o `WHERE` define qual registro será afetado.
+Ela informa ao FastAPI que essa função responderá às requisições:
 
-## 5. Por que usamos `%s`?
+``` text
+DELETE /alunos/{codAluno}
+```
 
-Os valores são enviados separadamente:
+Por exemplo:
 
-```python
-valores = (
-    aluno.nome,
-    aluno.cpf,
-    aluno.email,
-    aluno.data_nascimento,
-    aluno.telefone,
-    aluno.ra,
-    aluno.cidade,
-    codAluno
+``` text
+DELETE /alunos/5
+```
+
+significa que queremos excluir o aluno cujo código é `5`.
+
+Depois criamos a conexão com o banco:
+
+``` python
+conexao = criar_conexao()
+cursor = conexao.cursor()
+```
+
+Em seguida definimos o SQL:
+
+``` python
+sql = """
+    DELETE FROM alunos
+    WHERE codAluno = %s
+"""
+```
+
+O `WHERE` é fundamental porque queremos excluir somente um aluno.
+
+Depois executamos:
+
+``` python
+cursor.execute(sql, (codAluno,))
+```
+
+O `(codAluno,)` envia o código recebido pela URL para o `%s` do comando
+SQL.
+
+Depois verificamos:
+
+``` python
+if cursor.rowcount == 0:
+```
+
+Se nenhuma linha foi excluída, significa que o código informado não
+corresponde a nenhum aluno.
+
+Nesse caso:
+
+``` python
+raise HTTPException(
+    status_code=404,
+    detail="Aluno não encontrado."
 )
 ```
 
-e depois:
+retorna o erro `404`.
 
-```python
-cursor.execute(sql, valores)
-```
+Se tudo estiver correto:
 
-Essa abordagem evita montar o SQL concatenando strings e ajuda a proteger a aplicação contra problemas como SQL Injection.
-
-## 6. Confirmando a alteração com `commit()`
-
-Depois de:
-
-```python
-cursor.execute(sql, valores)
-```
-
-utilizamos:
-
-```python
+``` python
 conexao.commit()
 ```
 
-O `commit()` confirma a transação.
+confirma a exclusão.
 
-```text
-UPDATE
-  ↓
-Alteração preparada
-  ↓
-COMMIT
-  ↓
-Alteração confirmada
+Por fim:
+
+``` python
+return {
+    "mensagem": "Aluno excluído com sucesso."
+}
 ```
 
-## 7. Verificando se o aluno existe
+envia uma resposta para o JavaScript.
 
-Utilizamos:
 
-```python
-if cursor.rowcount == 0:
-    raise HTTPException(
-        status_code=404,
-        detail="Aluno não encontrado."
-    )
+</details>
+
+
+------------------------------------------------------------------------
+
+
+<details>
+
+
+<summary>
+
+<strong>👉 Clique aqui para revelar a solução do
+JavaScript</strong>
+
+</summary>
+
+## Frontend --- `frontend/js/aluno.js`
+
+Na função `exibirAlunos()`, mantenha o botão Alterar e acrescente o
+botão Excluir:
+
+``` javascript
+<td>
+
+    <button
+        type="button"
+        class="btn btn-warning btn-sm"
+        onclick="alterarAluno(${aluno.codAluno})"
+    >
+        ✏️ Alterar
+    </button>
+
+    <button
+        type="button"
+        class="btn btn-danger btn-sm"
+        onclick="excluirAluno(${aluno.codAluno}, '${aluno.nome}')"
+    >
+        🗑️ Excluir
+    </button>
+
+</td>
 ```
 
-Se nenhum registro for afetado, retornamos `404`.
+Observe que estamos enviando dois valores para a função:
 
-## 8. Tratando CPF e RA duplicados
-
-CPF e RA possuem restrição de unicidade no banco. Portanto, não podemos permitir que dois registros tenham o mesmo valor.
-
-Por isso tratamos:
-
-```python
-except IntegrityError as erro:
+``` javascript
+aluno.codAluno
 ```
 
 e:
 
-```python
-if erro.errno == 1062:
-    raise HTTPException(
-        status_code=409,
-        detail="CPF ou RA já cadastrado."
-    )
+``` javascript
+aluno.nome
 ```
 
-`409 Conflict` representa um conflito com os dados existentes.
+O código é necessário para saber qual registro excluir.
 
-## 9. Testando o PUT no Swagger
+O nome será utilizado para deixar a confirmação mais clara para o
+usuário.
 
-Execute:
+Agora criamos a função:
 
-```bash
-uvicorn app.main:app --reload
-```
+``` javascript
+async function excluirAluno(codAluno, nomeAluno) {
 
-Abra:
+    const confirmar = confirm(
+        `Deseja realmente excluir o aluno ${nomeAluno}?`
+    );
 
-```text
-http://127.0.0.1:8000/docs
-```
-
-Procure:
-
-```text
-PUT /alunos/{codAluno}
-```
-
-Clique em **Try it out**, informe um código existente e envie os dados.
-
-Exemplo:
-
-```json
-{
-    "nome": "Marcelo Alterado",
-    "cpf": "123456",
-    "email": "marcelo@teste.com",
-    "data_nascimento": "1980-02-04",
-    "telefone": "999999",
-    "ra": "987654",
-    "cidade": "Mogi Guaçu"
-}
-```
-
-Depois confira a alteração no banco.
-
-> **Boa prática:** teste primeiro a API. Se o PUT funcionar no Swagger, fica mais fácil descobrir se um problema posterior está no Front-End.
-
-## 10. Etapa 2 — Adicionar a coluna Ações
-
-Abra:
-
-```text
-frontend/alunos.html
-```
-
-Na tabela, acrescente:
-
-```html
-<th>Ações</th>
-```
-
-A tabela ficará semelhante a:
-
-```html
-<th>Código</th>
-<th>Nome</th>
-<th>CPF</th>
-<th>E-mail</th>
-<th>Data de Nascimento</th>
-<th>Telefone</th>
-<th>RA</th>
-<th>Cidade</th>
-<th>Ações</th>
-```
-
-Essa coluna permitirá que o usuário escolha qual aluno deseja alterar.
-
-### Ajustar o `colspan`
-
-Se existir (No Aluno.js):
-
-```html
-<td colspan="8">
-    Erro ao carregar os alunos.
-</td>
-```
-
-altere para:
-
-```html
-<td colspan="9">
-    Erro ao carregar os alunos.
-</td>
-```
-
-Temos uma coluna a mais.
-
-## 11. Etapa 3 — Criar o botão Alterar
-
-Abra:
-
-```text
-frontend/js/aluno.js
-```
-
-Na função que monta as linhas da tabela, acrescente:
-
-```javascript
-linha.innerHTML = `
-    <td>${aluno.codAluno}</td>
-    <td>${aluno.nome}</td>
-    <td>${aluno.cpf}</td>
-    <td>${aluno.email}</td>
-    <td>${aluno.data_nascimento}</td>
-    <td>${aluno.telefone}</td>
-    <td>${aluno.ra}</td>
-    <td>${aluno.cidade}</td>
-    <td>
-        <button
-            type="button"
-            class="btn btn-warning btn-sm"
-            onclick="alterarAluno(${aluno.codAluno})"
-        >
-            ✏️ Alterar
-        </button>
-    </td>
-`;
-```
-
-Se o aluno tiver `codAluno = 5`, o navegador interpretará:
-
-```javascript
-alterarAluno(5)
-```
-
-Assim sabemos qual registro foi selecionado.
-
-## 12. Etapa 4 — Criar `alterarAluno()`
-
-No mesmo arquivo, adicione:
-
-```javascript
-function alterarAluno(codAluno) {
-
-    window.location.href =
-        `/frontend/cadastrodealuno.html?codAluno=${codAluno}`;
-
-}
-```
-
-Ao clicar em Alterar, o navegador abrirá:
-
-```text
-cadastrodealuno.html?codAluno=5
-```
-
-O trecho `?codAluno=5` é um **query parameter**.
-
-## 13. Etapa 5 — Reutilizar o formulário
-
-Não precisamos criar `alteraraluno.html`.
-
-Vamos reutilizar:
-
-```text
-cadastrodealuno.html
-```
-
-Para cadastro:
-
-```text
-cadastrodealuno.html
-```
-
-Para alteração:
-
-```text
-cadastrodealuno.html?codAluno=5
-```
-
-Isso reduz duplicação e permite utilizar o mesmo formulário para as duas operações.
-
-## 14. Alterar o título e o botão
-
-Abra:
-
-```text
-frontend/cadastrodealuno.html
-```
-
-Altere o título para:
-
-```html
-<h1 id="tituloFormulario" class="fw-bold mb-1">
-    Cadastro de Aluno
-</h1>
-```
-
-E o botão:
-
-```html
-<button
-    type="submit"
-    class="btn btn-primary"
-    id="btnSalvar"
->
-    Cadastrar aluno
-</button>
-```
-
-Os `id` permitirão que o JavaScript altere esses textos quando estivermos no modo de alteração.
-
-## 15. Etapa 6 — Ler o `codAluno` da URL
-
-No JavaScript, adicionar as linhas abaixo no começo do arquivo:
-
-```javascript
-const parametros =
-    new URLSearchParams(window.location.search);
-
-const codAluno =
-    parametros.get("codAluno");
-```
-
-Se a página for `cadastrodealuno.html`, não haverá código.
-
-Se for `cadastrodealuno.html?codAluno=5`, teremos `codAluno = "5"`.
-
-## 16. Etapa 7 — Carregar os dados do aluno
-
-Crie:
-
-```javascript
-async function carregarAlunoParaAlteracao() {
-
-    if (!codAluno || !formulario) {
+    if (!confirmar) {
         return;
     }
 
     try {
-        const resposta = await fetch("/alunos");
 
-        if (!resposta.ok) {
-            throw new Error("Erro ao buscar alunos.");
-        }
-
-        const alunos = await resposta.json();
-
-        const aluno = alunos.find(
-            aluno => aluno.codAluno == codAluno
+        const resposta = await fetch(
+            `/alunos/${codAluno}`,
+            {
+                method: "DELETE"
+            }
         );
 
-        if (!aluno) {
-            mensagem.textContent =
-                "Aluno não encontrado.";
-            return;
-        }
+        const resultado = await resposta.json();
 
-        document.getElementById("nome").value =
-            aluno.nome;
+        if (resposta.ok) {
 
-        document.getElementById("cpf").value =
-            aluno.cpf;
+            alert("Aluno excluído com sucesso!");
 
-        document.getElementById("email").value =
-            aluno.email;
+            carregarAlunos();
 
-        document.getElementById("data_nascimento").value =
-            aluno.data_nascimento;
+        } else {
 
-        document.getElementById("telefone").value =
-            aluno.telefone;
-
-        document.getElementById("ra").value =
-            aluno.ra;
-
-        document.getElementById("cidade").value =
-            aluno.cidade;
-
-        document.getElementById("tituloFormulario").textContent =
-            "Alterar Aluno";
-
-        document.getElementById("btnSalvar").textContent =
-            "Salvar alterações";
-
-    } catch (erro) {
-        console.error(
-            "Erro ao carregar aluno:",
-            erro
-        );
-
-        mensagem.textContent =
-            "Não foi possível carregar os dados do aluno.";
-    }
-}
-```
-
-### Entendendo `find()`
-
-```javascript
-const aluno = alunos.find(
-    aluno => aluno.codAluno == codAluno
-);
-```
-
-Se a URL for `?codAluno=3`, o `find()` procura na lista o aluno de código 3.
-
-Depois os dados são colocados nos campos do formulário.
-
-## 17. Preenchendo o formulário
-
-Exemplo:
-
-```javascript
-document.getElementById("nome").value =
-aluno.nome;
-```
-
-O mesmo acontece com CPF, e-mail, data de nascimento, telefone, RA e cidade.
-
-Assim o usuário recebe um formulário já preenchido e pode modificar somente o que deseja.
-
-## 18. Etapa 8 — Diferenciar POST e PUT
-
-No envio do formulário precisamos descobrir:
-
-```text
-É cadastro?
-    ↓
-POST
-
-É alteração?
-    ↓
-PUT
-```
-
-Utilize:
-
-```javascript
-let resposta;
-
-if (codAluno) {
-
-    resposta = await fetch(
-        `/alunos/${codAluno}`,
-        {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(aluno)
-        }
-    );
-
-} else {
-
-    resposta = await fetch(
-        "/alunos",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(aluno)
-        }
-    );
-}
-```
-
-### Cadastro normal
-
-```text
-cadastrodealuno.html
-        ↓
-POST /alunos
-        ↓
-INSERT
-```
-
-### Alteração
-
-```text
-cadastrodealuno.html?codAluno=5
-        ↓
-PUT /alunos/5
-        ↓
-UPDATE ... WHERE codAluno = 5
-```
-
-## 19. Código do envio do formulário
-
-O evento poderá ficar assim:
-
-```javascript
-formulario.addEventListener(
-    "submit",
-    async function(evento) {
-
-        evento.preventDefault();
-        mensagem.textContent = "";
-
-        const aluno = {
-            nome: document.getElementById("nome").value,
-            cpf: document.getElementById("cpf").value,
-            email: document.getElementById("email").value,
-            data_nascimento:
-                document.getElementById("data_nascimento").value,
-            telefone:
-                document.getElementById("telefone").value,
-            ra: document.getElementById("ra").value,
-            cidade:
-                document.getElementById("cidade").value
-        };
-
-        try {
-            let resposta;
-
-            if (codAluno) {
-                resposta = await fetch(
-                    `/alunos/${codAluno}`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body: JSON.stringify(aluno)
-                    }
-                );
-            } else {
-                resposta = await fetch(
-                    "/alunos",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body: JSON.stringify(aluno)
-                    }
-                );
-            }
-
-            const resultado = await resposta.json();
-
-            if (resposta.ok) {
-                if (codAluno) {
-                    mensagem.textContent =
-                        "Aluno alterado com sucesso!";
-                } else {
-                    mensagem.textContent =
-                        "Aluno cadastrado com sucesso!";
-                    formulario.reset();
-                }
-            } else {
-                mensagem.textContent =
-                    "Erro: " + obterMensagemErro(resultado);
-
-                console.error(
-                    "Erro da API:",
-                    resultado
-                );
-            }
-
-        } catch (erro) {
-            mensagem.textContent =
-                "Não foi possível conectar ao servidor.";
+            alert(
+                "Erro: " + obterMensagemErro(resultado)
+            );
 
             console.error(
-                "Erro de conexão:",
-                erro
+                "Erro da API:",
+                resultado
             );
         }
+
+    } catch (erro) {
+
+        alert(
+            "Não foi possível conectar ao servidor."
+        );
+
+        console.error(
+            "Erro de conexão:",
+            erro
+        );
     }
+}
+```
+
+### Entendendo a função
+
+Primeiro:
+
+``` javascript
+const confirmar = confirm(
+    `Deseja realmente excluir o aluno ${nomeAluno}?`
 );
 ```
 
-> **Atenção:** mantenha as funções que já existem no projeto. A ideia é adaptar o código existente, e não apagar funcionalidades que já estavam funcionando.
+abre a confirmação.
 
-## 20. Executar a função ao abrir a página
+Se o usuário escolher **NÃO**:
 
-Ao final do JavaScript, além das funções já existentes, chame:
-
-```javascript
-carregarAlunoParaAlteracao();
+``` javascript
+if (!confirmar) {
+    return;
+}
 ```
 
-Quando a página abrir com `?codAluno=5`, o sistema carregará os dados do aluno.
+a função termina e nada é excluído.
 
-## 21. Como testar
+Se o usuário escolher **SIM**, o programa continua.
 
-### Teste 1 — Cadastro
+Então fazemos:
 
-Abra `cadastrodealuno.html`, cadastre um aluno e confirme que continua funcionando.
-
-### Teste 2 — Listagem
-
-Abra `alunos.html` e confira se o aluno aparece.
-
-### Teste 3 — Filtro
-
-Utilize os filtros existentes e encontre o aluno.
-
-### Teste 4 — Alterar
-
-Clique em **✏️ Alterar**. O formulário deverá abrir preenchido.
-
-### Teste 5 — Modificar
-
-Altere algum dado e clique em **Salvar alterações**.
-
-### Teste 6 — Conferir no banco
-
-Execute:
-
-```sql
-SELECT * FROM alunos;
+``` javascript
+fetch(`/alunos/${codAluno}`, {
+    method: "DELETE"
+})
 ```
 
-Confirme se o registro foi alterado.
+O JavaScript envia a requisição para o FastAPI.
 
-### Teste 7 — CPF ou RA duplicado
+Depois verificamos:
 
-Tente colocar um CPF ou RA que já pertença a outro aluno. O banco deverá impedir a operação.
+``` javascript
+if (resposta.ok)
+```
 
-## 22. Erros comuns
+Se estiver tudo certo, mostramos:
 
-### UPDATE sem WHERE
+``` javascript
+alert("Aluno excluído com sucesso!");
+```
+
+e carregamos novamente os alunos:
+
+``` javascript
+carregarAlunos();
+```
+
+Dessa forma a tabela é atualizada.
+
+
+</details>
+
+
+------------------------------------------------------------------------
+
+# 🔬 13. Entendendo o fluxo completo
+
+Depois da implementação, o funcionamento será:
+
+``` text
+┌───────────────────────────┐
+│       alunos.html         │
+│                           │
+│ 🗑️ Excluir               │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│       aluno.js            │
+│                           │
+│ excluirAluno(codAluno)    │
+└─────────────┬─────────────┘
+              │
+              ▼
+        confirm()
+              │
+       ┌──────┴──────┐
+       │             │
+      NÃO           SIM
+       │             │
+       ▼             ▼
+    Cancela      fetch()
+                     │
+                     │ DELETE
+                     ▼
+┌───────────────────────────┐
+│        FastAPI            │
+│                           │
+│ DELETE /alunos/{id}       │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│          MySQL            │
+│                           │
+│ DELETE FROM alunos        │
+│ WHERE codAluno = %s       │
+└─────────────┬─────────────┘
+              │
+              ▼
+        commit()
+              │
+              ▼
+┌───────────────────────────┐
+│       aluno.js            │
+│                           │
+│ carregarAlunos()          │
+└─────────────┬─────────────┘
+              │
+              ▼
+       Tabela atualizada
+```
+
+------------------------------------------------------------------------
+
+# 📚 14. O CRUD completo
+
+Com a implementação do Excluir, o módulo de alunos passa a possuir as
+quatro operações fundamentais:
+
+  Operação    Método HTTP   Endpoint
+  ----------- ------------- ----------------------
+  Cadastrar   `POST`        `/alunos`
+  Listar      `GET`         `/alunos`
+  Alterar     `PUT`         `/alunos/{codAluno}`
+  Excluir     `DELETE`      `/alunos/{codAluno}`
+
+Isso representa o conceito de **CRUD**:
+
+``` text
+C → Create  → Criar
+R → Read    → Ler
+U → Update  → Atualizar
+D → Delete  → Excluir
+```
+
+------------------------------------------------------------------------
+
+# 🎯 15. Desafio final --- Professor e Funcionário
+
+Agora que você conseguiu implementar o Excluir para Aluno, **não copie
+simplesmente o código**.
+
+Tente descobrir quais partes precisam ser modificadas para implementar a
+mesma funcionalidade para:
+
+### 👨‍🏫 Professor
+
+Você deverá criar:
+
+``` text
+DELETE /professores/{codProf}
+```
+
+e implementar:
+
+``` javascript
+excluirProfessor()
+```
+
+### 👔 Funcionário
+
+Você deverá criar:
+
+``` text
+DELETE /funcionarios/{codFunc}
+```
+
+e implementar:
+
+``` javascript
+excluirFuncionario()
+```
+
+Observe que a estrutura é praticamente a mesma, mas os nomes mudam.
+
+  Aluno              Professor              Funcionário
+  ------------------ ---------------------- ------------------------
+  `alunos`           `professor`            `funcionario`
+  `codAluno`         `codProf`              `codFunc`
+  `excluirAluno()`   `excluirProfessor()`   `excluirFuncionario()`
+  `/alunos/`         `/professores/`        `/funcionarios/`
+
+------------------------------------------------------------------------
+
+# 📝 Atividade
+
+Implemente o Excluir para:
+
+-   [ ] Aluno
+-   [ ] Professor
+-   [ ] Funcionário
+
+Cada implementação deverá possuir:
+
+-   [ ] Botão **🗑️ Excluir**
+-   [ ] Confirmação antes da exclusão
+-   [ ] Requisição HTTP `DELETE`
+-   [ ] Rota `DELETE` no FastAPI
+-   [ ] Comando SQL `DELETE`
+-   [ ] `WHERE` utilizando o código do registro
+-   [ ] Verificação de registro inexistente
+-   [ ] Mensagem de sucesso
+-   [ ] Atualização da tabela após a exclusão
+
+------------------------------------------------------------------------
+
+# ⚠️ Cuidados importantes
+
+### 1. Nunca esqueça o `WHERE`
 
 Errado:
 
-```sql
-UPDATE alunos
-SET cidade = %s;
+``` sql
+DELETE FROM alunos;
 ```
 
 Correto:
 
-```sql
-UPDATE alunos
-SET cidade = %s
+``` sql
+DELETE FROM alunos
 WHERE codAluno = %s;
 ```
 
-### Usar POST para alterar
+### 2. Não exclua antes da confirmação
 
-Para alteração:
+A confirmação deve acontecer **antes** da requisição `DELETE`.
 
-```javascript
-method: "PUT"
+### 3. Use o código correto
+
+Aluno:
+
+``` text
+codAluno
 ```
 
-### Esquecer o código na URL
+Professor:
 
-Use:
-
-```javascript
-fetch(`/alunos/${codAluno}`)
+``` text
+codProf
 ```
 
-### Esquecer o commit
+Funcionário:
 
-Depois do UPDATE:
-
-```python
-cursor.execute(sql, valores)
-conexao.commit()
+``` text
+codFunc
 ```
 
-### Apagar o cadastro existente
+### 4. Teste o banco
 
-O formulário deve continuar funcionando para:
+Não confie apenas na mensagem exibida na tela.
 
-```text
-Cadastro → POST
-Alteração → PUT
+Confirme no MySQL:
+
+``` sql
+SELECT * FROM alunos;
 ```
 
-## 23. Conceitos aprendidos
+------------------------------------------------------------------------
 
-### Front-End
+# 🚀 Conclusão
 
-- HTML;
-- tabelas;
-- botões;
-- JavaScript;
-- eventos;
-- `onclick`;
-- `fetch()`;
-- `URLSearchParams`;
-- `async/await`;
-- JSON;
-- query parameters.
+Neste capítulo você implementou uma das operações mais importantes de um
+sistema CRUD: a **exclusão de registros**.
 
-### Back-End
+Mais importante do que simplesmente fazer o código funcionar é entender
+o caminho completo:
 
-- FastAPI;
-- rotas;
-- parâmetros de URL;
-- método HTTP PUT;
-- tratamento de exceções;
-- códigos HTTP.
-
-### Banco de dados
-
-- `UPDATE`;
-- `SET`;
-- `WHERE`;
-- `COMMIT`;
-- `UNIQUE`;
-- integridade dos dados.
-
-### Arquitetura
-
-```text
-HTML
- ↓
-JavaScript
- ↓
-API REST / FastAPI
- ↓
-MySQL
-```
-
-# 24. 📝 ATIVIDADE — Agora é sua vez!
-
-Agora que a alteração de **Aluno** foi implementada, você deverá aplicar o mesmo conceito para **Professor** e **Funcionário**.
-
-## 👨‍🏫 Professor
-
-Implemente:
-
-```text
-Listar
- ↓
-Filtrar
- ↓
-Selecionar
- ↓
-Alterar
- ↓
-Salvar
-```
-
-Crie uma rota semelhante a:
-
-```http
-PUT /professores/{codigo}
-```
-
-e execute um:
-
-```sql
-UPDATE professores
-...
-WHERE codigo = ...;
-```
-
-Adapte os campos de acordo com a estrutura real da tabela e do seu projeto.
-
-## 👷 Funcionário
-
-Faça o mesmo para Funcionário:
-
-```text
-Listar
- ↓
-Filtrar
- ↓
-Selecionar
- ↓
-Alterar
- ↓
-Salvar
-```
-
-Crie a rota correspondente no FastAPI e execute o `UPDATE` utilizando corretamente a chave primária do registro.
-
-# 25. Requisitos da atividade
-
-Para Professor e Funcionário, implemente:
-
-- [ ] botão **Alterar** na listagem;
-- [ ] passagem do código do registro pela URL;
-- [ ] abertura do formulário;
-- [ ] preenchimento automático dos dados;
-- [ ] alteração dos dados;
-- [ ] envio utilizando `PUT`;
-- [ ] endpoint no FastAPI;
-- [ ] utilização do `UPDATE`;
-- [ ] utilização correta do `WHERE`;
-- [ ] utilização do `commit()`;
-- [ ] tratamento de registro não encontrado;
-- [ ] tratamento das restrições de integridade;
-- [ ] mensagem de sucesso;
-- [ ] mensagem de erro;
-- [ ] manutenção do cadastro existente funcionando.
-
-# 26. ⭐ Desafios extras
-
-Depois de implementar Professor e Funcionário, tente melhorar o sistema.
-
-### Desafio 1
-
-Após salvar, retornar automaticamente para a página de listagem.
-
-### Desafio 2
-
-Mostrar uma confirmação:
-
-```text
-Deseja realmente salvar estas alterações?
-```
-
-### Desafio 3
-
-Adicionar um botão **Cancelar** que retorna para a listagem sem salvar.
-
-### Desafio 4
-
-Validar os campos obrigatórios antes de enviar.
-
-# 27. Conclusão
-
-Um sistema CRUD não possui somente o cadastro.
-
-```text
-C — Create
-    INSERT
-
-R — Read
-    SELECT
-
-U — Update
-    UPDATE
-
-D — Delete
-    DELETE
-```
-
-Até aqui, nosso sistema já trabalha com:
-
-```text
-CREATE → Cadastro
-READ   → Listagem/Filtro
-UPDATE → Alteração
-```
-
-## 🎯 Exercício final
-
-**Implemente o Alterar para Professor e Funcionário sem simplesmente copiar o código do Aluno.**
-
-Analise o que foi feito para Aluno, identifique quais partes precisam ser adaptadas e faça as alterações necessárias de acordo com:
-
-- os campos de cada tabela;
-- os modelos do FastAPI;
-- os formulários HTML;
-- os arquivos JavaScript;
-- as chaves primárias;
-- as regras de integridade de cada tabela.
-
-A finalidade deste exercício é verificar se você realmente compreendeu o fluxo:
-
-```text
-Front-End
+``` text
+Interface
    ↓
 JavaScript
    ↓
-PUT
+HTTP DELETE
    ↓
 FastAPI
    ↓
-UPDATE
+SQL DELETE
    ↓
 MySQL
 ```
 
-**Boa prática: não tenha pressa para copiar. Entenda o que cada linha faz e por que ela precisa existir.**
+Agora tente realizar sozinho a mesma implementação para **Professor e
+Funcionário**.
 
-
-
-# 28. Próximo capítulo
-
-No próximo capítulo vamos criar a aplicação e realizar o Excluir Alunos junto com o banco de dados.
-
-[➡️ **Capítulo 05 — Excluir Alunos**](https://github.com/pedroAmalfi/livro-api-python-fastapi/tree/main/livro/05-excluir-aluno)
+**Bom trabalho e bons testes! 🚀**

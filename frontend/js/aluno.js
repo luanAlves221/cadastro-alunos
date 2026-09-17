@@ -226,16 +226,51 @@ function exibirAlunos(listaAlunos) {
             <td>
                 <button
                     type="button"
-                    class="btn btn-warning btn-sm"
+                    class="btn btn-warning btn-sm me-1"
                     onclick="alterarAluno(${aluno.codAluno})"
                 >
                     Alterar
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    onclick="excluirAluno(${aluno.codAluno}, '${aluno.nome.replace(/'/g, "\\'")}')"
+                >
+                    Excluir
                 </button>
             </td>
         `;
 
         tabela.appendChild(linha);
     });
+}
+
+async function excluirAluno(codAluno, nomeAluno) {
+    const confirmar = confirm(`Deseja realmente excluir o aluno ${nomeAluno}?`);
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch(`/alunos/${codAluno}`, {
+            method: "DELETE"
+        });
+
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            alert("Aluno excluído com sucesso!");
+            carregarAlunos();
+        } else {
+            alert("Erro: " + obterMensagemErro(resultado));
+            console.error("Erro da API:", resultado);
+        }
+
+    } catch (erro) {
+        alert("Não foi possível conectar ao servidor.");
+        console.error("Erro de conexão:", erro);
+    }
 }
 
 function filtrarAlunos() {

@@ -222,16 +222,51 @@ function exibirProfessores(listaProfessores) {
             <td>
                 <button
                     type="button"
-                    class="btn btn-warning btn-sm"
+                    class="btn btn-warning btn-sm me-1"
                     onclick="alterarProfessor(${professor.codProf})"
                 >
                     Alterar
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    onclick="excluirProfessor(${professor.codProf}, '${professor.nome.replace(/'/g, "\\'")}')"
+                >
+                    Excluir
                 </button>
             </td>
         `;
 
         tabela.appendChild(linha);
     });
+}
+
+async function excluirProfessor(codProf, nomeProf) {
+    const confirmar = confirm(`Deseja realmente excluir o professor ${nomeProf}?`);
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch(`/professores/${codProf}`, {
+            method: "DELETE"
+        });
+
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            alert("Professor excluído com sucesso!");
+            carregarProfessores();
+        } else {
+            alert("Erro: " + obterMensagemErro(resultado));
+            console.error("Erro da API:", resultado);
+        }
+
+    } catch (erro) {
+        alert("Não foi possível conectar ao servidor.");
+        console.error("Erro de conexão:", erro);
+    }
 }
 
 function filtrarProfessores() {
