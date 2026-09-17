@@ -151,6 +151,76 @@ def cadastrar_aluno(aluno: AlunoCreate):
         conexao.close()
 
 
+@app.put("/alunos/{codAluno}", response_model=AlunoResponse)
+def alterar_aluno(codAluno: int, aluno: AlunoCreate):
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute("SELECT codAluno FROM alunos WHERE codAluno = %s", (codAluno,))
+        if not cursor.fetchone():
+            raise HTTPException(
+                status_code=404,
+                detail="Aluno não encontrado."
+            )
+
+        sql = """
+            UPDATE alunos
+            SET
+                nome = %s,
+                cpf = %s,
+                email = %s,
+                data_nascimento = %s,
+                telefone = %s,
+                ra = %s
+            WHERE codAluno = %s
+        """
+
+        valores = (
+            aluno.nome,
+            aluno.cpf,
+            aluno.email,
+            aluno.data_nascimento,
+            aluno.telefone,
+            aluno.ra,
+            codAluno
+        )
+
+        cursor.execute(sql, valores)
+        conexao.commit()
+
+        return {
+            "codAluno": codAluno,
+            "nome": aluno.nome,
+            "cpf": aluno.cpf,
+            "email": aluno.email,
+            "data_nascimento": aluno.data_nascimento,
+            "telefone": aluno.telefone,
+            "ra": aluno.ra
+        }
+
+    except HTTPException:
+        raise
+
+    except IntegrityError as erro:
+        conexao.rollback()
+
+        if erro.errno == 1062:
+            raise HTTPException(
+                status_code=409,
+                detail="CPF ou RA já cadastrado."
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro de integridade no banco de dados."
+        )
+
+    finally:
+        cursor.close()
+        conexao.close()
+
+
 @app.get("/professores", response_model=list[ProfessorResponse])
 def listar_professores():
     conexao = criar_conexao()
@@ -228,6 +298,73 @@ def cadastrar_professor(professor: ProfessorCreate):
         conexao.close()
 
 
+@app.put("/professores/{codProf}", response_model=ProfessorResponse)
+def alterar_professor(codProf: int, professor: ProfessorCreate):
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute("SELECT codProf FROM professores WHERE codProf = %s", (codProf,))
+        if not cursor.fetchone():
+            raise HTTPException(
+                status_code=404,
+                detail="Professor não encontrado."
+            )
+
+        sql = """
+            UPDATE professores
+            SET
+                nome = %s,
+                cpf = %s,
+                email = %s,
+                data_nascimento = %s,
+                telefone = %s
+            WHERE codProf = %s
+        """
+
+        valores = (
+            professor.nome,
+            professor.cpf,
+            professor.email,
+            professor.data_nascimento,
+            professor.telefone,
+            codProf
+        )
+
+        cursor.execute(sql, valores)
+        conexao.commit()
+
+        return {
+            "codProf": codProf,
+            "nome": professor.nome,
+            "cpf": professor.cpf,
+            "email": professor.email,
+            "data_nascimento": professor.data_nascimento,
+            "telefone": professor.telefone
+        }
+
+    except HTTPException:
+        raise
+
+    except IntegrityError as erro:
+        conexao.rollback()
+
+        if erro.errno == 1062:
+            raise HTTPException(
+                status_code=409,
+                detail="CPF já cadastrado."
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro de integridade no banco de dados."
+        )
+
+    finally:
+        cursor.close()
+        conexao.close()
+
+
 @app.get("/funcionarios", response_model=list[FuncionarioResponse])
 def listar_funcionarios():
     conexao = criar_conexao()
@@ -285,6 +422,73 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate):
             "data_nascimento": funcionario.data_nascimento,
             "telefone": funcionario.telefone
         }
+
+    except IntegrityError as erro:
+        conexao.rollback()
+
+        if erro.errno == 1062:
+            raise HTTPException(
+                status_code=409,
+                detail="CPF já cadastrado."
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Erro de integridade no banco de dados."
+        )
+
+    finally:
+        cursor.close()
+        conexao.close()
+
+
+@app.put("/funcionarios/{codFunc}", response_model=FuncionarioResponse)
+def alterar_funcionario(codFunc: int, funcionario: FuncionarioCreate):
+    conexao = criar_conexao()
+    cursor = conexao.cursor()
+
+    try:
+        cursor.execute("SELECT codFunc FROM funcionarios WHERE codFunc = %s", (codFunc,))
+        if not cursor.fetchone():
+            raise HTTPException(
+                status_code=404,
+                detail="Funcionário não encontrado."
+            )
+
+        sql = """
+            UPDATE funcionarios
+            SET
+                nome = %s,
+                cpf = %s,
+                email = %s,
+                data_nascimento = %s,
+                telefone = %s
+            WHERE codFunc = %s
+        """
+
+        valores = (
+            funcionario.nome,
+            funcionario.cpf,
+            funcionario.email,
+            funcionario.data_nascimento,
+            funcionario.telefone,
+            codFunc
+        )
+
+        cursor.execute(sql, valores)
+        conexao.commit()
+
+        return {
+            "codFunc": codFunc,
+            "nome": funcionario.nome,
+            "cpf": funcionario.cpf,
+            "email": funcionario.email,
+            "data_nascimento": funcionario.data_nascimento,
+            "telefone": funcionario.telefone
+        }
+
+    except HTTPException:
+        raise
 
     except IntegrityError as erro:
         conexao.rollback()

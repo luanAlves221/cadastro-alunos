@@ -1,0 +1,193 @@
+﻿===============================================================================
+RESUMO E ARQUITETURA GERAL DO PROJETO (SISTEMA ESCOLAR)
+===============================================================================
+
+1. VISÃO GERAL
+--------------
+O projeto é um sistema web completo (Full Stack) voltado para gestão escolar,
+permitindo cadastrar, consultar, filtrar e relacionar entidades como Alunos,
+Professores, Funcionários e Turmas.
+
+A arquitetura é dividida em três camadas principais:
+- Backend: API REST desenvolvida em Python com FastAPI.
+- Banco de Dados: Relacional em MySQL, acessado via mysql-connector-python.
+- Frontend: Páginas HTML5, CSS3 personalizado, Bootstrap 5 e Vanilla JavaScript.
+
+
+2. TECNOLOGIAS E DEPENDÊNCIAS UTILIZADAS
+----------------------------------------
+[Backend]
+- Python 3.10+
+- FastAPI: Criação das rotas REST, entrega de arquivos HTML e arquivos estáticos.
+- Uvicorn: Servidor ASGI para executar a aplicação.
+- mysql-connector-python: Driver para conexão e execução de queries SQL puras no MySQL.
+- python-dotenv: Carregamento seguro das variáveis de ambiente (.env).
+- pydantic e email-validator: Validação e tipagem rigorosa de dados de entrada e saída.
+
+[Frontend]
+- HTML5: Estruturação semântica de formulários, tabelas e cards.
+- Bootstrap 5.3.3 (CDN): Grid responsivo, cards com sombra, tabelas estilizadas e botões.
+- CSS3 (frontend/css/estilo.css): Estilização global, efeitos hover e refinamento visual.
+- JavaScript Vanilla (Fetch API): Comunicação assíncrona com a API (JSON), manipulação do DOM e filtros em memória.
+
+[Banco de Dados]
+- MySQL: Tabelas relacionais com chaves primárias auto-incrementáveis, chaves estrangeiras (FK) e restrições de unicidade (UNIQUE).
+
+
+3. ESTRUTURA DE PASTAS E ARQUIVOS
+---------------------------------
+cadastro-alunos/
+├── backend/
+│   ├── database.py       -> Função criar_conexao() conectando ao MySQL via .env
+│   ├── schemas.py        -> Modelos Pydantic (Create e Response) para cada entidade
+│   └── main.py           -> Endpoints da API REST (GET/POST) e entrega de páginas HTML
+│
+├── frontend/
+│   ├── index.html        -> Dashboard inicial com cards de navegação
+│   │
+│   ├── alunos.html       -> Tabela de visualização e filtro dinâmico de Alunos
+│   ├── professores.html  -> Tabela de visualização e filtro dinâmico de Professores
+│   ├── funcionarios.html -> Tabela de visualização e filtro dinâmico de Funcionários
+│   │
+│   ├── cadastro_aluno.html          -> Formulário de cadastro de Aluno
+│   ├── cadastro_professor.html      -> Formulário de cadastro de Professor
+│   ├── cadastro_funcionario.html    -> Formulário de cadastro de Funcionário
+│   ├── cadastro_turma.html          -> Formulário de cadastro de Turma
+│   ├── cadastro_turmaaluno.html     -> Formulário para vincular Turma e Aluno
+│   ├── cadastro_turmaprofessor.html -> Formulário para vincular Turma e Professor
+│   │
+│   ├── css/
+│   │   └── estilo.css    -> Folha de estilos centralizada para todo o projeto
+│   │
+│   └── js/
+│       ├── aluno.js          -> Lógica de cadastro (POST) e filtro dinâmico de Alunos
+│       ├── professor.js      -> Lógica de cadastro (POST) e filtro dinâmico de Professores
+│       ├── funcionario.js    -> Lógica de cadastro (POST) e filtro dinâmico de Funcionários
+│       ├── turma.js          -> Lógica de cadastro de Turmas
+│       ├── turmaaluno.js     -> Carrega selects dinâmicos e cadastra vínculo Turma-Aluno
+│       └── turmaprofessor.js -> Carrega selects dinâmicos e cadastra vínculo Turma-Professor
+│
+├── .env                  -> Variáveis de ambiente (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)
+├── dados.txt             -> Base de dados de exemplo com registros para testes
+└── requirements.txt      -> Lista de pacotes Python necessários
+
+
+4. BANCO DE DADOS E ENTIDADES
+-----------------------------
+1. alunos:
+   - codAluno (INT, PK, AUTO_INCREMENT)
+   - nome (VARCHAR(100), NOT NULL)
+   - cpf (VARCHAR(14), NOT NULL, UNIQUE)
+   - email (VARCHAR(150), NOT NULL)
+   - data_nascimento (DATE, NOT NULL)
+   - telefone (VARCHAR(20), NOT NULL)
+   - ra (VARCHAR(10), NOT NULL, UNIQUE)
+
+2. professores:
+   - codProf (INT, PK, AUTO_INCREMENT)
+   - nome (VARCHAR(100), NOT NULL)
+   - cpf (VARCHAR(14), NOT NULL, UNIQUE)
+   - email (VARCHAR(150), NOT NULL)
+   - data_nascimento (DATE, NOT NULL)
+   - telefone (VARCHAR(20), NOT NULL)
+
+3. funcionarios:
+   - codFunc (INT, PK, AUTO_INCREMENT)
+   - nome (VARCHAR(100), NOT NULL)
+   - cpf (VARCHAR(14), NOT NULL, UNIQUE)
+   - email (VARCHAR(150), NOT NULL)
+   - data_nascimento (DATE, NOT NULL)
+   - telefone (VARCHAR(20), NOT NULL)
+
+4. turma:
+   - codTurma (INT, PK, AUTO_INCREMENT)
+   - curso (VARCHAR(100), NOT NULL)
+   - modulo (VARCHAR(100), NOT NULL)
+   - ano (DATE, NOT NULL)
+
+5. turmaaluno (Relacionamento N:M):
+   - codTurmaAluno (INT, PK, AUTO_INCREMENT)
+   - codTurma (INT, FK -> turma.codTurma)
+   - codAluno (INT, FK -> alunos.codAluno)
+
+6. turmaprofessor (Relacionamento N:M):
+   - codTurmaProfessor (INT, PK, AUTO_INCREMENT)
+   - codTurma (INT, FK -> turma.codTurma)
+   - codProf (INT, FK -> professores.codProf)
+
+
+5. ENDPOINTS DA API BACKEND (FastAPI)
+--------------------------------------
+[Entrega de Telas]
+- GET /                              -> Retorna frontend/index.html (Dashboard)
+- GET /cadastro-de-aluno             -> Retorna frontend/cadastro_aluno.html
+- GET /cadastro-de-professor         -> Retorna frontend/cadastro_professor.html
+- GET /cadastro-de-funcionario       -> Retorna frontend/cadastro_funcionario.html
+- GET /cadastro-de-turma             -> Retorna frontend/cadastro_turma.html
+- GET /cadastro-de-turma-aluno       -> Retorna frontend/cadastro_turmaaluno.html
+- GET /cadastro-de-turma-professor   -> Retorna frontend/cadastro_turmaprofessor.html
+- GET /frontend/*                    -> StaticFiles para servir CSS, JS e páginas de visualização
+
+[Alunos]
+- GET /alunos                        -> Lista todos os alunos cadastrados
+- POST /alunos                       -> Cadastra novo aluno (valida duplicidade de CPF/RA: erro 409)
+
+[Professores]
+- GET /professores                   -> Lista todos os professores
+- POST /professores                  -> Cadastra novo professor (valida duplicidade de CPF: erro 409)
+
+[Funcionários]
+- GET /funcionarios                  -> Lista todos os funcionários
+- POST /funcionarios                 -> Cadastra novo funcionário (valida duplicidade de CPF: erro 409)
+
+[Turmas]
+- GET /turmas                        -> Lista todas as turmas
+- POST /turmas                       -> Cadastra nova turma
+
+[Vínculos / Associações]
+- GET /turma-alunos                  -> Lista associações turma-aluno
+- POST /turma-alunos                 -> Cadastra associação turma-aluno
+- GET /turma-professores             -> Lista associações turma-professor
+- POST /turma-professores            -> Cadastra associação turma-professor
+
+
+6. PADRÕES E FUNCIONALIDADES DO FRONTEND
+----------------------------------------
+1. Dashboard Inicial (index.html):
+   - Apresenta cards para Alunos, Professores e Funcionários com botões diretos para visualização e cadastro.
+   - Apresenta seção dedicada para criação e vínculo de turmas.
+
+2. Formulários de Cadastro:
+   - Capturam o evento 'submit' via JavaScript (preventDefault).
+   - Enviam requisição POST em formato JSON usando Fetch API.
+   - Apresentam mensagem de sucesso ou tratam erros vindos do backend (ex: CPF já cadastrado ou campos inválidos).
+   - Nas telas de vínculo (TurmaAluno e TurmaProfessor), carregam dinamicamente as opções dos <select> buscando direto das rotas GET /turmas, GET /alunos e GET /professores.
+
+3. Visualização e Filtro em Tempo Real:
+   - Ao abrir a página de visualização (ex: alunos.html), executa fetch(GET /alunos) e guarda os dados em memória (array).
+   - A função exibirDados(lista) monta dinamicamente as tags <tr> e <td> no <tbody>.
+   - O campo <input id="textoFiltro"> escuta o evento 'input' para filtrar instantaneamente à medida que o usuário digita.
+   - O <select id="campoFiltro"> escuta o evento 'change' para alterar a coluna de busca (Nome, CPF, E-mail, etc.).
+   - Utiliza métodos nativos do JS: filter(), toLowerCase(), trim() e includes().
+   - O botão Limpar restaura o campo de busca e recarrega a tabela completa.
+   - Caso nenhum registro coincida com a busca, exibe mensagem amigável informando que nada foi encontrado.
+
+4. Reutilização de Scripts JS:
+   - Os arquivos JS (aluno.js, professor.js, etc.) atendem tanto a tela de cadastro quanto a tela de listagem, usando proteções com 'if (elemento)' para evitar erros de elementos nulos.
+
+
+7. COMO EXECUTAR O PROJETO
+--------------------------
+1. Ativar o ambiente virtual:
+   - PowerShell: .\venv\Scripts\Activate.ps1
+   - CMD: venv\Scripts\activate
+
+2. Instalar as dependências:
+   pip install -r requirements.txt
+
+3. Iniciar o servidor:
+   python -m uvicorn backend.main:app --reload
+
+4. Acessar no navegador:
+   http://127.0.0.1:8000/
+===============================================================================

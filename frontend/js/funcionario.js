@@ -1,5 +1,8 @@
 let funcionarios = [];
 
+const parametros = new URLSearchParams(window.location.search);
+const codFunc = parametros.get("codFunc");
+
 const formulario = document.getElementById("form-funcionario");
 const mensagem = document.getElementById("mensagem");
 
@@ -8,6 +11,11 @@ if (formulario) {
         evento.preventDefault();
 
         mensagem.textContent = "";
+
+        const btnSalvar = document.getElementById("btnSalvar");
+        if (btnSalvar) {
+            btnSalvar.disabled = true;
+        }
 
         const funcionario = {
             nome: document.getElementById("nome").value,
@@ -18,23 +26,48 @@ if (formulario) {
         };
 
         try {
-            const resposta = await fetch("/funcionarios", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(funcionario)
-            });
+            let resposta;
+
+            if (codFunc) {
+                resposta = await fetch(`/funcionarios/${codFunc}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(funcionario)
+                });
+            } else {
+                resposta = await fetch("/funcionarios", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(funcionario)
+                });
+            }
 
             const resultado = await resposta.json();
 
             if (resposta.ok) {
-                mensagem.textContent = "Funcionário cadastrado com sucesso!";
-                formulario.reset();
-                console.log("Funcionário cadastrado:", resultado);
+                if (codFunc) {
+                    mensagem.textContent = "Funcionário alterado com sucesso!";
+                    setTimeout(() => {
+                        window.location.href = "/frontend/funcionarios.html";
+                    }, 1200);
+                } else {
+                    mensagem.textContent = "Funcionário cadastrado com sucesso!";
+                    formulario.reset();
+                    if (btnSalvar) {
+                        btnSalvar.disabled = false;
+                    }
+                }
             } else {
                 mensagem.textContent =
-                    "Erro ao cadastrar funcionário: " + obterMensagemErro(resultado);
+                    "Erro: " + obterMensagemErro(resultado);
+
+                if (btnSalvar) {
+                    btnSalvar.disabled = false;
+                }
 
                 console.error("Erro da API:", resultado);
             }
@@ -42,6 +75,10 @@ if (formulario) {
         } catch (erro) {
             mensagem.textContent =
                 "Não foi possível conectar ao servidor.";
+
+            if (btnSalvar) {
+                btnSalvar.disabled = false;
+            }
 
             console.error("Erro de conexão:", erro);
         }
@@ -72,6 +109,55 @@ function obterMensagemErro(resultado) {
     return resultado.detail;
 }
 
+function alterarFuncionario(codFunc) {
+    window.location.href = `/cadastro-de-funcionario?codFunc=${codFunc}`;
+}
+
+async function carregarFuncionarioParaAlteracao() {
+    if (!codFunc || !formulario) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch("/funcionarios");
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao buscar funcionários.");
+        }
+
+        const listaFuncionarios = await resposta.json();
+
+        const funcionario = listaFuncionarios.find(
+            item => item.codFunc == codFunc
+        );
+
+        if (!funcionario) {
+            mensagem.textContent = "Funcionário não encontrado.";
+            return;
+        }
+
+        document.getElementById("nome").value = funcionario.nome;
+        document.getElementById("cpf").value = funcionario.cpf;
+        document.getElementById("email").value = funcionario.email;
+        document.getElementById("data_nascimento").value = funcionario.data_nascimento;
+        document.getElementById("telefone").value = funcionario.telefone;
+
+        const titulo = document.getElementById("tituloFormulario");
+        if (titulo) {
+            titulo.textContent = "Alterar Funcionário";
+        }
+
+        const btnSalvar = document.getElementById("btnSalvar");
+        if (btnSalvar) {
+            btnSalvar.textContent = "Salvar alterações";
+        }
+
+    } catch (erro) {
+        console.error("Erro ao carregar funcionário:", erro);
+        mensagem.textContent = "Não foi possível carregar os dados do funcionário.";
+    }
+}
+
 async function carregarFuncionarios() {
     const tabela = document.getElementById("listaFuncionarios");
 
@@ -95,7 +181,7 @@ async function carregarFuncionarios() {
 
         tabela.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center text-danger py-4">
+                <td colspan="7" class="text-center text-danger py-4">
                     Erro ao carregar os funcionários.
                 </td>
             </tr>
@@ -115,7 +201,7 @@ function exibirFuncionarios(listaFuncionarios) {
     if (listaFuncionarios.length === 0) {
         tabela.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center text-muted py-4">
+                <td colspan="7" class="text-center text-muted py-4">
                     Nenhum funcionário encontrado.
                 </td>
             </tr>
@@ -133,6 +219,15 @@ function exibirFuncionarios(listaFuncionarios) {
             <td>${funcionario.email}</td>
             <td>${funcionario.data_nascimento}</td>
             <td>${funcionario.telefone}</td>
+            <td>
+                <button
+                    type="button"
+                    class="btn btn-warning btn-sm"
+                    onclick="alterarFuncionario(${funcionario.codFunc})"
+                >
+                    Alterar
+                </button>
+            </td>
         `;
 
         tabela.appendChild(linha);
@@ -185,3 +280,4 @@ if (btnLimparFiltro) {
 }
 
 carregarFuncionarios();
+carregarFuncionarioParaAlteracao();

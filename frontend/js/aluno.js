@@ -1,5 +1,8 @@
 let alunos = [];
 
+const parametros = new URLSearchParams(window.location.search);
+const codAluno = parametros.get("codAluno");
+
 const formulario = document.getElementById("form-aluno");
 const mensagem = document.getElementById("mensagem");
 
@@ -8,6 +11,11 @@ if (formulario) {
         evento.preventDefault();
 
         mensagem.textContent = "";
+
+        const btnSalvar = document.getElementById("btnSalvar");
+        if (btnSalvar) {
+            btnSalvar.disabled = true;
+        }
 
         const aluno = {
             nome: document.getElementById("nome").value,
@@ -19,23 +27,48 @@ if (formulario) {
         };
 
         try {
-            const resposta = await fetch("/alunos", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(aluno)
-            });
+            let resposta;
+
+            if (codAluno) {
+                resposta = await fetch(`/alunos/${codAluno}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(aluno)
+                });
+            } else {
+                resposta = await fetch("/alunos", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(aluno)
+                });
+            }
 
             const resultado = await resposta.json();
 
             if (resposta.ok) {
-                mensagem.textContent = "Aluno cadastrado com sucesso!";
-                formulario.reset();
-                console.log("Aluno cadastrado:", resultado);
+                if (codAluno) {
+                    mensagem.textContent = "Aluno alterado com sucesso!";
+                    setTimeout(() => {
+                        window.location.href = "/frontend/alunos.html";
+                    }, 1200);
+                } else {
+                    mensagem.textContent = "Aluno cadastrado com sucesso!";
+                    formulario.reset();
+                    if (btnSalvar) {
+                        btnSalvar.disabled = false;
+                    }
+                }
             } else {
                 mensagem.textContent =
-                    "Erro ao cadastrar aluno: " + obterMensagemErro(resultado);
+                    "Erro: " + obterMensagemErro(resultado);
+
+                if (btnSalvar) {
+                    btnSalvar.disabled = false;
+                }
 
                 console.error("Erro da API:", resultado);
             }
@@ -43,6 +76,10 @@ if (formulario) {
         } catch (erro) {
             mensagem.textContent =
                 "Não foi possível conectar ao servidor.";
+
+            if (btnSalvar) {
+                btnSalvar.disabled = false;
+            }
 
             console.error("Erro de conexão:", erro);
         }
@@ -74,6 +111,56 @@ function obterMensagemErro(resultado) {
     return resultado.detail;
 }
 
+function alterarAluno(codAluno) {
+    window.location.href = `/cadastro-de-aluno?codAluno=${codAluno}`;
+}
+
+async function carregarAlunoParaAlteracao() {
+    if (!codAluno || !formulario) {
+        return;
+    }
+
+    try {
+        const resposta = await fetch("/alunos");
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao buscar alunos.");
+        }
+
+        const listaAlunos = await resposta.json();
+
+        const aluno = listaAlunos.find(
+            item => item.codAluno == codAluno
+        );
+
+        if (!aluno) {
+            mensagem.textContent = "Aluno não encontrado.";
+            return;
+        }
+
+        document.getElementById("nome").value = aluno.nome;
+        document.getElementById("cpf").value = aluno.cpf;
+        document.getElementById("email").value = aluno.email;
+        document.getElementById("data_nascimento").value = aluno.data_nascimento;
+        document.getElementById("telefone").value = aluno.telefone;
+        document.getElementById("ra").value = aluno.ra;
+
+        const titulo = document.getElementById("tituloFormulario");
+        if (titulo) {
+            titulo.textContent = "Alterar Aluno";
+        }
+
+        const btnSalvar = document.getElementById("btnSalvar");
+        if (btnSalvar) {
+            btnSalvar.textContent = "Salvar alterações";
+        }
+
+    } catch (erro) {
+        console.error("Erro ao carregar aluno:", erro);
+        mensagem.textContent = "Não foi possível carregar os dados do aluno.";
+    }
+}
+
 async function carregarAlunos() {
     const tabela = document.getElementById("listaAlunos");
 
@@ -97,7 +184,7 @@ async function carregarAlunos() {
 
         tabela.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-danger py-4">
+                <td colspan="8" class="text-center text-danger py-4">
                     Erro ao carregar os alunos.
                 </td>
             </tr>
@@ -117,7 +204,7 @@ function exibirAlunos(listaAlunos) {
     if (listaAlunos.length === 0) {
         tabela.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-muted py-4">
+                <td colspan="8" class="text-center text-muted py-4">
                     Nenhum aluno encontrado.
                 </td>
             </tr>
@@ -136,6 +223,15 @@ function exibirAlunos(listaAlunos) {
             <td>${aluno.data_nascimento}</td>
             <td>${aluno.telefone}</td>
             <td>${aluno.ra}</td>
+            <td>
+                <button
+                    type="button"
+                    class="btn btn-warning btn-sm"
+                    onclick="alterarAluno(${aluno.codAluno})"
+                >
+                    Alterar
+                </button>
+            </td>
         `;
 
         tabela.appendChild(linha);
@@ -188,3 +284,4 @@ if (btnLimparFiltro) {
 }
 
 carregarAlunos();
+carregarAlunoParaAlteracao();
