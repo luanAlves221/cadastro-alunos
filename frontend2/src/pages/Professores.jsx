@@ -12,6 +12,8 @@ const formularioVazio = {
 
 function Professores() {
   const [professores, setProfessores] = useState([]);
+  const [campoFiltro, setCampoFiltro] = useState("nome");
+  const [textoFiltro, setTextoFiltro] = useState("");
   const [formulario, setFormulario] = useState(formularioVazio);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -77,6 +79,18 @@ function Professores() {
       setSalvando(false);
     }
   }
+
+  const professoresFiltrados = professores.filter((prof) => {
+    const valor = prof[campoFiltro];
+
+    if (valor === null || valor === undefined) {
+      return false;
+    }
+
+    return String(valor)
+      .toLowerCase()
+      .includes(textoFiltro.trim().toLowerCase());
+  });
 
   return (
     <main className="pagina">
@@ -190,6 +204,52 @@ function Professores() {
         </section>
       )}
 
+      <section className="filtros">
+        <label>
+          Filtrar por
+          <select
+            value={campoFiltro}
+            onChange={(evento) => setCampoFiltro(evento.target.value)}
+          >
+            <option value="codProf">Código</option>
+            <option value="nome">Nome</option>
+            <option value="cpf">CPF</option>
+            <option value="email">E-mail</option>
+            <option value="data_nascimento">Data de nascimento</option>
+            <option value="telefone">Telefone</option>
+          </select>
+        </label>
+
+        <label>
+          Texto para buscar
+          <input
+            type="text"
+            value={textoFiltro}
+            onChange={(evento) => setTextoFiltro(evento.target.value)}
+            placeholder="Digite o que deseja encontrar"
+          />
+        </label>
+
+        <button
+          className="botao botao-principal"
+          type="button"
+          onClick={() => setTextoFiltro((texto) => texto.trim())}
+        >
+          Filtrar
+        </button>
+
+        <button
+          className="botao botao-secundario"
+          type="button"
+          onClick={() => {
+            setCampoFiltro("nome");
+            setTextoFiltro("");
+          }}
+        >
+          Limpar
+        </button>
+      </section>
+
       <h2>Professores cadastrados</h2>
 
       {carregando ? (
@@ -209,7 +269,7 @@ function Professores() {
             </thead>
 
             <tbody>
-              {professores.map((prof) => (
+              {professoresFiltrados.map((prof) => (
                 <tr key={prof.codProf}>
                   <td>{prof.codProf}</td>
                   <td>{prof.nome}</td>
@@ -220,9 +280,13 @@ function Professores() {
                 </tr>
               ))}
 
-              {professores.length === 0 && (
+              {professoresFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan="6">Nenhum professor cadastrado.</td>
+                  <td colSpan="6">
+                    {professores.length === 0
+                      ? "Nenhum professor cadastrado."
+                      : "Nenhum professor encontrado para esse filtro."}
+                  </td>
                 </tr>
               )}
             </tbody>

@@ -12,6 +12,8 @@ const formularioVazio = {
 
 function Funcionarios() {
   const [funcionarios, setFuncionarios] = useState([]);
+  const [campoFiltro, setCampoFiltro] = useState("nome");
+  const [textoFiltro, setTextoFiltro] = useState("");
   const [formulario, setFormulario] = useState(formularioVazio);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -77,6 +79,18 @@ function Funcionarios() {
       setSalvando(false);
     }
   }
+
+  const funcionariosFiltrados = funcionarios.filter((func) => {
+    const valor = func[campoFiltro];
+
+    if (valor === null || valor === undefined) {
+      return false;
+    }
+
+    return String(valor)
+      .toLowerCase()
+      .includes(textoFiltro.trim().toLowerCase());
+  });
 
   return (
     <main className="pagina">
@@ -190,6 +204,52 @@ function Funcionarios() {
         </section>
       )}
 
+      <section className="filtros">
+        <label>
+          Filtrar por
+          <select
+            value={campoFiltro}
+            onChange={(evento) => setCampoFiltro(evento.target.value)}
+          >
+            <option value="codFunc">Código</option>
+            <option value="nome">Nome</option>
+            <option value="cpf">CPF</option>
+            <option value="email">E-mail</option>
+            <option value="data_nascimento">Data de nascimento</option>
+            <option value="telefone">Telefone</option>
+          </select>
+        </label>
+
+        <label>
+          Texto para buscar
+          <input
+            type="text"
+            value={textoFiltro}
+            onChange={(evento) => setTextoFiltro(evento.target.value)}
+            placeholder="Digite o que deseja encontrar"
+          />
+        </label>
+
+        <button
+          className="botao botao-principal"
+          type="button"
+          onClick={() => setTextoFiltro((texto) => texto.trim())}
+        >
+          Filtrar
+        </button>
+
+        <button
+          className="botao botao-secundario"
+          type="button"
+          onClick={() => {
+            setCampoFiltro("nome");
+            setTextoFiltro("");
+          }}
+        >
+          Limpar
+        </button>
+      </section>
+
       <h2>Funcionários cadastrados</h2>
 
       {carregando ? (
@@ -209,7 +269,7 @@ function Funcionarios() {
             </thead>
 
             <tbody>
-              {funcionarios.map((func) => (
+              {funcionariosFiltrados.map((func) => (
                 <tr key={func.codFunc}>
                   <td>{func.codFunc}</td>
                   <td>{func.nome}</td>
@@ -220,9 +280,13 @@ function Funcionarios() {
                 </tr>
               ))}
 
-              {funcionarios.length === 0 && (
+              {funcionariosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan="6">Nenhum funcionário cadastrado.</td>
+                  <td colSpan="6">
+                    {funcionarios.length === 0
+                      ? "Nenhum funcionário cadastrado."
+                      : "Nenhum funcionário encontrado para esse filtro."}
+                  </td>
                 </tr>
               )}
             </tbody>
