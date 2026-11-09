@@ -4,6 +4,7 @@ import {
   listarProfessores,
   cadastrarProfessor,
   alterarProfessor,
+  excluirProfessor,
 } from "../services/api";
 
 const formularioVazio = {
@@ -108,6 +109,27 @@ function Professores() {
       setErro(erro.message || "Não foi possível salvar o professor.");
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function removerProfessor(codProf) {
+    const confirmar = window.confirm(
+      "Tem certeza de que deseja excluir este professor? Essa ação não poderá ser desfeita."
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    setErro("");
+    setMensagem("");
+
+    try {
+      await excluirProfessor(codProf);
+      setMensagem("Professor excluído com sucesso!");
+      await carregarProfessores();
+    } catch (erro) {
+      setErro(erro.message || "Não foi possível excluir o professor.");
     }
   }
 
@@ -314,13 +336,23 @@ function Professores() {
                   <td>{String(prof.data_nascimento).slice(0, 10)}</td>
                   <td>{prof.telefone}</td>
                   <td>
-                    <button
-                      type="button"
-                      className="botao botao-editar"
-                      onClick={() => prepararEdicao(prof)}
-                    >
-                      Alterar
-                    </button>
+                    <div className="acoes-tabela">
+                      <button
+                        type="button"
+                        className="botao botao-editar"
+                        onClick={() => prepararEdicao(prof)}
+                      >
+                        Alterar
+                      </button>
+
+                      <button
+                        type="button"
+                        className="botao botao-excluir"
+                        onClick={() => removerProfessor(prof.codProf)}
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

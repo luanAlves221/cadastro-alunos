@@ -59,6 +59,34 @@ export async function alterarAluno(codAluno, aluno) {
   return dados;
 }
 
+export async function excluirAluno(codAluno) {
+  const resposta = await fetch(`${API_URL}/alunos/${codAluno}`, {
+    method: "DELETE",
+  });
+
+  if (!resposta.ok) {
+    let mensagem = "Não foi possível excluir o aluno.";
+
+    try {
+      const dados = await resposta.json();
+
+      if (typeof dados.detail === "string") {
+        mensagem = dados.detail;
+      }
+    } catch {
+      // Ignora erro se não houver corpo JSON
+    }
+
+    throw new Error(mensagem);
+  }
+
+  if (resposta.status === 204) {
+    return;
+  }
+
+  return resposta.json();
+}
+
 export async function listarProfessores() {
   const resposta = await fetch(`${API_URL}/professores`);
   const dados = await resposta.json();
@@ -118,6 +146,34 @@ export async function alterarProfessor(codProf, professor) {
   return dados;
 }
 
+export async function excluirProfessor(codProf) {
+  const resposta = await fetch(`${API_URL}/professores/${codProf}`, {
+    method: "DELETE",
+  });
+
+  if (!resposta.ok) {
+    let mensagem = "Não foi possível excluir o professor.";
+
+    try {
+      const dados = await resposta.json();
+
+      if (typeof dados.detail === "string") {
+        mensagem = dados.detail;
+      }
+    } catch {
+      // Ignora erro se não houver corpo JSON
+    }
+
+    throw new Error(mensagem);
+  }
+
+  if (resposta.status === 204) {
+    return;
+  }
+
+  return resposta.json();
+}
+
 export async function listarFuncionarios() {
   const resposta = await fetch(`${API_URL}/funcionarios`);
   const dados = await resposta.json();
@@ -175,4 +231,32 @@ export async function alterarFuncionario(codFunc, funcionario) {
   }
 
   return dados;
+}
+
+export async function excluirFuncionario(codFunc) {
+  const resposta = await fetch(`${API_URL}/funcionarios/${codFunc}`, {
+    method: "DELETE",
+  });
+
+  if (!resposta.ok) {
+    let mensagem = "Não foi possível excluir o funcionário.";
+
+    try {
+      const dados = await resposta.json();
+
+      if (typeof dados.detail === "string") {
+        mensagem = dados.detail;
+      }
+    } catch {
+      // Ignora erro se não houver corpo JSON
+    }
+
+    throw new Error(mensagem);
+  }
+
+  if (resposta.status === 204) {
+    return;
+  }
+
+  return resposta.json();
 }

@@ -4,6 +4,7 @@ import {
   listarFuncionarios,
   cadastrarFuncionario,
   alterarFuncionario,
+  excluirFuncionario,
 } from "../services/api";
 
 const formularioVazio = {
@@ -108,6 +109,27 @@ function Funcionarios() {
       setErro(erro.message || "Não foi possível salvar o funcionário.");
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function removerFuncionario(codFunc) {
+    const confirmar = window.confirm(
+      "Tem certeza de que deseja excluir este funcionário? Essa ação não poderá ser desfeita."
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    setErro("");
+    setMensagem("");
+
+    try {
+      await excluirFuncionario(codFunc);
+      setMensagem("Funcionário excluído com sucesso!");
+      await carregarFuncionarios();
+    } catch (erro) {
+      setErro(erro.message || "Não foi possível excluir o funcionário.");
     }
   }
 
@@ -314,13 +336,23 @@ function Funcionarios() {
                   <td>{String(func.data_nascimento).slice(0, 10)}</td>
                   <td>{func.telefone}</td>
                   <td>
-                    <button
-                      type="button"
-                      className="botao botao-editar"
-                      onClick={() => prepararEdicao(func)}
-                    >
-                      Alterar
-                    </button>
+                    <div className="acoes-tabela">
+                      <button
+                        type="button"
+                        className="botao botao-editar"
+                        onClick={() => prepararEdicao(func)}
+                      >
+                        Alterar
+                      </button>
+
+                      <button
+                        type="button"
+                        className="botao botao-excluir"
+                        onClick={() => removerFuncionario(func.codFunc)}
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

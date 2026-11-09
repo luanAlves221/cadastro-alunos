@@ -127,6 +127,28 @@ h1 {
   background: #115e59;
 }
 
+.botao-excluir {
+  background: #b91c1c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.botao-excluir:hover {
+  background: #991b1b;
+}
+
+.acoes-tabela {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .topo-pagina {
   display: flex;
   justify-content: space-between;
