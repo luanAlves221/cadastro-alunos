@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { listarProfessores, cadastrarProfessor } from "../services/api";
+import {
+  listarProfessores,
+  cadastrarProfessor,
+  alterarProfessor,
+} from "../services/api";
 
 const formularioVazio = {
   nome: "",
@@ -12,6 +16,7 @@ const formularioVazio = {
 
 function Professores() {
   const [professores, setProfessores] = useState([]);
+  const [professorEditando, setProfessorEditando] = useState(null);
   const [campoFiltro, setCampoFiltro] = useState("nome");
   const [textoFiltro, setTextoFiltro] = useState("");
   const [formulario, setFormulario] = useState(formularioVazio);
@@ -51,6 +56,7 @@ function Professores() {
 
   function abrirFormulario() {
     setFormulario(formularioVazio);
+    setProfessorEditando(null);
     setMensagem("");
     setErro("");
     setSearchParams({ acao: "cadastrar" });
@@ -58,7 +64,25 @@ function Professores() {
 
   function fecharFormulario() {
     setFormulario(formularioVazio);
+    setProfessorEditando(null);
     setSearchParams({});
+  }
+
+  function prepararEdicao(prof) {
+    setFormulario({
+      nome: prof.nome ?? "",
+      cpf: prof.cpf ?? "",
+      email: prof.email ?? "",
+      data_nascimento: prof.data_nascimento
+        ? String(prof.data_nascimento).slice(0, 10)
+        : "",
+      telefone: prof.telefone ?? "",
+    });
+
+    setProfessorEditando(prof.codProf);
+    setMensagem("");
+    setErro("");
+    setSearchParams({ acao: "cadastrar" });
   }
 
   async function salvarProfessor(evento) {
@@ -68,13 +92,20 @@ function Professores() {
     setMensagem("");
 
     try {
-      await cadastrarProfessor(formulario);
-      setMensagem("Professor cadastrado com sucesso!");
+      if (professorEditando !== null) {
+        await alterarProfessor(professorEditando, formulario);
+        setMensagem("Professor alterado com sucesso!");
+      } else {
+        await cadastrarProfessor(formulario);
+        setMensagem("Professor cadastrado com sucesso!");
+      }
+
       setFormulario(formularioVazio);
+      setProfessorEditando(null);
       setSearchParams({});
       await carregarProfessores();
     } catch (erro) {
-      setErro(erro.message || "Não foi possível cadastrar o professor.");
+      setErro(erro.message || "Não foi possível salvar o professor.");
     } finally {
       setSalvando(false);
     }
@@ -120,7 +151,7 @@ function Professores() {
 
       {mostrarFormulario && (
         <section className="formulario">
-          <h2>Novo professor</h2>
+          <h2>{professorEditando !== null ? "Alterar professor" : "Novo professor"}</h2>
 
           <form onSubmit={salvarProfessor}>
             <div className="campos">
@@ -189,7 +220,11 @@ function Professores() {
                 type="submit"
                 disabled={salvando}
               >
-                {salvando ? "Salvando..." : "Salvar professor"}
+                {salvando
+                  ? "Salvando..."
+                  : professorEditando !== null
+                    ? "Salvar alterações"
+                    : "Cadastrar professor"}
               </button>
 
               <button
@@ -265,6 +300,7 @@ function Professores() {
                 <th>E-mail</th>
                 <th>Data de nascimento</th>
                 <th>Telefone</th>
+                <th>Ações</th>
               </tr>
             </thead>
 
@@ -277,12 +313,21 @@ function Professores() {
                   <td>{prof.email}</td>
                   <td>{String(prof.data_nascimento).slice(0, 10)}</td>
                   <td>{prof.telefone}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="botao botao-editar"
+                      onClick={() => prepararEdicao(prof)}
+                    >
+                      Alterar
+                    </button>
+                  </td>
                 </tr>
               ))}
 
               {professoresFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan="6">
+                  <td colSpan="7">
                     {professores.length === 0
                       ? "Nenhum professor cadastrado."
                       : "Nenhum professor encontrado para esse filtro."}

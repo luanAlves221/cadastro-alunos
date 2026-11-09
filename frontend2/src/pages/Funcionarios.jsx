@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { listarFuncionarios, cadastrarFuncionario } from "../services/api";
+import {
+  listarFuncionarios,
+  cadastrarFuncionario,
+  alterarFuncionario,
+} from "../services/api";
 
 const formularioVazio = {
   nome: "",
@@ -12,6 +16,7 @@ const formularioVazio = {
 
 function Funcionarios() {
   const [funcionarios, setFuncionarios] = useState([]);
+  const [funcionarioEditando, setFuncionarioEditando] = useState(null);
   const [campoFiltro, setCampoFiltro] = useState("nome");
   const [textoFiltro, setTextoFiltro] = useState("");
   const [formulario, setFormulario] = useState(formularioVazio);
@@ -51,6 +56,7 @@ function Funcionarios() {
 
   function abrirFormulario() {
     setFormulario(formularioVazio);
+    setFuncionarioEditando(null);
     setMensagem("");
     setErro("");
     setSearchParams({ acao: "cadastrar" });
@@ -58,7 +64,25 @@ function Funcionarios() {
 
   function fecharFormulario() {
     setFormulario(formularioVazio);
+    setFuncionarioEditando(null);
     setSearchParams({});
+  }
+
+  function prepararEdicao(func) {
+    setFormulario({
+      nome: func.nome ?? "",
+      cpf: func.cpf ?? "",
+      email: func.email ?? "",
+      data_nascimento: func.data_nascimento
+        ? String(func.data_nascimento).slice(0, 10)
+        : "",
+      telefone: func.telefone ?? "",
+    });
+
+    setFuncionarioEditando(func.codFunc);
+    setMensagem("");
+    setErro("");
+    setSearchParams({ acao: "cadastrar" });
   }
 
   async function salvarFuncionario(evento) {
@@ -68,13 +92,20 @@ function Funcionarios() {
     setMensagem("");
 
     try {
-      await cadastrarFuncionario(formulario);
-      setMensagem("Funcionário cadastrado com sucesso!");
+      if (funcionarioEditando !== null) {
+        await alterarFuncionario(funcionarioEditando, formulario);
+        setMensagem("Funcionário alterado com sucesso!");
+      } else {
+        await cadastrarFuncionario(formulario);
+        setMensagem("Funcionário cadastrado com sucesso!");
+      }
+
       setFormulario(formularioVazio);
+      setFuncionarioEditando(null);
       setSearchParams({});
       await carregarFuncionarios();
     } catch (erro) {
-      setErro(erro.message || "Não foi possível cadastrar o funcionário.");
+      setErro(erro.message || "Não foi possível salvar o funcionário.");
     } finally {
       setSalvando(false);
     }
@@ -120,7 +151,7 @@ function Funcionarios() {
 
       {mostrarFormulario && (
         <section className="formulario">
-          <h2>Novo funcionário</h2>
+          <h2>{funcionarioEditando !== null ? "Alterar funcionário" : "Novo funcionário"}</h2>
 
           <form onSubmit={salvarFuncionario}>
             <div className="campos">
@@ -189,7 +220,11 @@ function Funcionarios() {
                 type="submit"
                 disabled={salvando}
               >
-                {salvando ? "Salvando..." : "Salvar funcionário"}
+                {salvando
+                  ? "Salvando..."
+                  : funcionarioEditando !== null
+                    ? "Salvar alterações"
+                    : "Cadastrar funcionário"}
               </button>
 
               <button
@@ -265,6 +300,7 @@ function Funcionarios() {
                 <th>E-mail</th>
                 <th>Data de nascimento</th>
                 <th>Telefone</th>
+                <th>Ações</th>
               </tr>
             </thead>
 
@@ -277,12 +313,21 @@ function Funcionarios() {
                   <td>{func.email}</td>
                   <td>{String(func.data_nascimento).slice(0, 10)}</td>
                   <td>{func.telefone}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="botao botao-editar"
+                      onClick={() => prepararEdicao(func)}
+                    >
+                      Alterar
+                    </button>
+                  </td>
                 </tr>
               ))}
 
               {funcionariosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan="6">
+                  <td colSpan="7">
                     {funcionarios.length === 0
                       ? "Nenhum funcionário cadastrado."
                       : "Nenhum funcionário encontrado para esse filtro."}
